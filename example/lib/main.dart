@@ -174,10 +174,10 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
                       colors: [
                         _getEmotionColor(
                           _latestResult!.emotion,
-                        ).withOpacity(0.1),
+                        ).withValues(alpha: 0.1),
                         _getEmotionColor(
                           _latestResult!.emotion,
-                        ).withOpacity(0.05),
+                        ).withValues(alpha: 0.05),
                       ],
                     ),
                   ),
@@ -192,11 +192,12 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
                       const SizedBox(height: 16),
                       Text(
                         _latestResult!.emotion,
-                        style: Theme.of(context).textTheme.displayMedium
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: _getEmotionColor(_latestResult!.emotion),
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.displayMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: _getEmotionColor(_latestResult!.emotion),
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -247,9 +248,10 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
                                       Text(
                                         entry.key,
                                         style: TextStyle(
-                                          fontWeight: isTop
-                                              ? FontWeight.bold
-                                              : FontWeight.normal,
+                                          fontWeight:
+                                              isTop
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
                                           fontSize: 16,
                                         ),
                                       ),
@@ -258,9 +260,10 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
                                   Text(
                                     '${(entry.value * 100).toStringAsFixed(1)}%',
                                     style: TextStyle(
-                                      fontWeight: isTop
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
+                                      fontWeight:
+                                          isTop
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
                                     ),
                                   ),
                                 ],
@@ -280,7 +283,7 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
                             ],
                           ),
                         );
-                      }).toList(),
+                      }),
                     ],
                   ),
                 ),
@@ -322,7 +325,7 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
                             ],
                           ),
                         );
-                      }).toList(),
+                      }),
                     ],
                   ),
                 ),

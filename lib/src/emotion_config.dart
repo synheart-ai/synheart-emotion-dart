@@ -1,4 +1,7 @@
+import 'package:flutter/foundation.dart';
+
 /// Configuration for the emotion inference engine
+@immutable
 class EmotionConfig {
   /// Model identifier (default: svm_linear_wrist_sdnn_v1_0)
   final String modelId;
@@ -23,7 +26,8 @@ class EmotionConfig {
 
   /// Creates a new [EmotionConfig] with the specified parameters.
   ///
-  /// All parameters are optional and have sensible defaults for typical use cases.
+  /// All parameters are optional and have sensible defaults for typical
+  /// use cases.
   const EmotionConfig({
     this.modelId = 'svm_linear_wrist_sdnn_v1_0',
     this.window = const Duration(seconds: 60),
@@ -43,27 +47,26 @@ class EmotionConfig {
     bool? returnAllProbas,
     double? hrBaseline,
     Map<String, double>? priors,
-  }) {
-    return EmotionConfig(
-      modelId: modelId ?? this.modelId,
-      window: window ?? this.window,
-      step: step ?? this.step,
-      minRrCount: minRrCount ?? this.minRrCount,
-      returnAllProbas: returnAllProbas ?? this.returnAllProbas,
-      hrBaseline: hrBaseline ?? this.hrBaseline,
-      priors: priors ?? this.priors,
-    );
-  }
+  }) => EmotionConfig(
+    modelId: modelId ?? this.modelId,
+    window: window ?? this.window,
+    step: step ?? this.step,
+    minRrCount: minRrCount ?? this.minRrCount,
+    returnAllProbas: returnAllProbas ?? this.returnAllProbas,
+    hrBaseline: hrBaseline ?? this.hrBaseline,
+    priors: priors ?? this.priors,
+  );
 
   @override
-  String toString() {
-    return 'EmotionConfig(modelId: $modelId, window: ${window.inSeconds}s, '
-        'step: ${step.inSeconds}s, minRrCount: $minRrCount)';
-  }
+  String toString() =>
+      'EmotionConfig(modelId: $modelId, window: ${window.inSeconds}s, '
+      'step: ${step.inSeconds}s, minRrCount: $minRrCount)';
 
   @override
   bool operator ==(Object other) {
-    if (identical(this, other)) return true;
+    if (identical(this, other)) {
+      return true;
+    }
     return other is EmotionConfig &&
         other.modelId == modelId &&
         other.window == window &&
@@ -75,24 +78,30 @@ class EmotionConfig {
   }
 
   @override
-  int get hashCode {
-    return Object.hash(
-      modelId,
-      window,
-      step,
-      minRrCount,
-      returnAllProbas,
-      hrBaseline,
-      priors,
-    );
-  }
+  int get hashCode => Object.hash(
+    modelId,
+    window,
+    step,
+    minRrCount,
+    returnAllProbas,
+    hrBaseline,
+    priors,
+  );
 
   bool _mapEquals(Map<String, double>? a, Map<String, double>? b) {
-    if (a == null && b == null) return true;
-    if (a == null || b == null) return false;
-    if (a.length != b.length) return false;
+    if (a == null && b == null) {
+      return true;
+    }
+    if (a == null || b == null) {
+      return false;
+    }
+    if (a.length != b.length) {
+      return false;
+    }
     for (final key in a.keys) {
-      if (a[key] != b[key]) return false;
+      if (a[key] != b[key]) {
+        return false;
+      }
     }
     return true;
   }

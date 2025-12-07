@@ -9,7 +9,8 @@ import 'emotion_error.dart';
 
 /// ONNX-based model loader for emotion inference.
 ///
-/// Loads and runs ONNX models with metadata from accompanying meta.json files.
+/// Loads and runs ONNX models with metadata from accompanying meta.json
+/// files.
 class OnnxEmotionModel {
   final String modelId;
   final List<String> inputNames;
@@ -58,8 +59,10 @@ class OnnxEmotionModel {
               '${directory.path}${Platform.pathSeparator}$fileName';
 
           final file = File(modelPath);
+          // ignore: avoid_slow_async_io
           if (!await file.exists()) {
             final byteData = await rootBundle.load(modelAssetPath);
+            // ignore: avoid_slow_async_io
             await file.writeAsBytes(byteData.buffer.asUint8List());
           }
 
@@ -114,7 +117,8 @@ class OnnxEmotionModel {
       final inputs = {inputName: inputTensor};
       final outputs = await _session.run(inputs);
 
-      // ExtraTrees ONNX models output: [label, probabilities] or [probabilities, label]
+      // ExtraTrees ONNX models output: [label, probabilities] or
+      // [probabilities, label]
       // We need to find the output with key "probabilities"
       List<double> probabilities;
 
@@ -179,7 +183,7 @@ class OnnxEmotionModel {
 
       // Convert to map with class names
       final result = <String, double>{};
-      for (int i = 0; i < classNames.length && i < probabilities.length; i++) {
+      for (var i = 0; i < classNames.length && i < probabilities.length; i++) {
         result[classNames[i]] = probabilities[i];
       }
 

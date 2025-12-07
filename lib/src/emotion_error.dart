@@ -13,27 +13,20 @@ abstract class EmotionError implements Exception {
   factory EmotionError.tooFewRR({
     required int minExpected,
     required int actual,
-  }) {
-    return _TooFewRRError(minExpected, actual);
-  }
+  }) => _TooFewRRError(minExpected, actual);
 
   /// Invalid input data
-  factory EmotionError.badInput(String reason) {
-    return _BadInputError(reason);
-  }
+  factory EmotionError.badInput(String reason) => _BadInputError(reason);
 
   /// Model incompatible with feature dimensions
   factory EmotionError.modelIncompatible({
     required int expectedFeats,
     required int actualFeats,
-  }) {
-    return _ModelIncompatibleError(expectedFeats, actualFeats);
-  }
+  }) => _ModelIncompatibleError(expectedFeats, actualFeats);
 
   /// Feature extraction failed
-  factory EmotionError.featureExtractionFailed(String reason) {
-    return _FeatureExtractionError(reason);
-  }
+  factory EmotionError.featureExtractionFailed(String reason) =>
+      _FeatureExtractionError(reason);
 
   @override
   String toString() => 'EmotionError: $message';
@@ -60,7 +53,8 @@ class _ModelIncompatibleError extends EmotionError {
 
   _ModelIncompatibleError(this.expectedFeats, this.actualFeats)
     : super(
-        'Model incompatible: expected $expectedFeats features, got $actualFeats',
+        'Model incompatible: expected $expectedFeats features, '
+        'got $actualFeats',
         {'expectedFeats': expectedFeats, 'actualFeats': actualFeats},
       );
 }
