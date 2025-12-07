@@ -25,8 +25,8 @@ class _DataPoint {
 /// Processes biosignal data using a sliding window approach and produces
 /// emotion predictions at configurable intervals.
 class EmotionEngine {
-  /// Expected number of core HRV features (SDNN, RMSSD, pNN50, Mean_RR, HR_mean).
-  static const int expectedFeatureCount = 5;
+  /// Expected number of core HRV features (hr_mean, sdnn, rmssd).
+  static const int expectedFeatureCount = 3;
 
   /// Configuration for this emotion engine instance.
   final EmotionConfig config;
@@ -118,7 +118,10 @@ class EmotionEngine {
   }
 
   /// Consume ready results (throttled by step interval)
-  Future<List<EmotionResult>> consumeReady() async {
+  ///
+  /// Returns results synchronously (no await required), matching API specification
+  /// across all platforms (Python, Kotlin, Swift).
+  List<EmotionResult> consumeReady() {
     final results = <EmotionResult>[];
 
     if (model == null) {
@@ -144,11 +147,16 @@ class EmotionEngine {
         return results; // Feature extraction failed
       }
 
-      // Run inference (supports both sync and async models)
-      Map<String, double> probabilities;
+      // Run inference synchronously (Linear SVM model)
+      // Note: ONNX async models are not supported in consumeReady() to maintain
+      // API parity with Python, Kotlin, and Swift SDKs which are all synchronous.
+      final Map<String, double> probabilities;
       if (model.runtimeType.toString().contains('Onnx')) {
-        // ONNX model requires async
-        probabilities = await model.predictAsync(features);
+        _log(
+          'error',
+          'ONNX async models not supported in consumeReady(). Use Linear SVM model.',
+        );
+        return results;
       } else {
         // Linear SVM model is synchronous
         probabilities = model.predict(features);

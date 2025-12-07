@@ -38,7 +38,7 @@ class EmotionStream {
   /// Create stream from tick data
   Stream<EmotionResult> _createStream(Stream<Tick> ticks) {
     _subscription = ticks.listen(
-      (tick) async {
+      (tick) {
         // Push data to engine
         _engine.push(
           hr: tick.hr,
@@ -47,8 +47,8 @@ class EmotionStream {
           motion: tick.motion,
         );
 
-        // Consume ready results (now async)
-        final results = await _engine.consumeReady();
+        // Consume ready results (synchronous)
+        final results = _engine.consumeReady();
         for (final result in results) {
           if (!_controller.isClosed) {
             _controller.add(result);

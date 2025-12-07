@@ -4,6 +4,11 @@
 
 [![pub package](https://img.shields.io/pub/v/synheart_emotion.svg)](https://pub.dev/packages/synheart_emotion)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/synheart-ai/synheart-emotion-flutter/actions/workflows/ci.yml/badge.svg)](https://github.com/synheart-ai/synheart-emotion-flutter/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/synheart-ai/synheart-emotion-flutter/branch/main/graph/badge.svg)](https://codecov.io/gh/synheart-ai/synheart-emotion-flutter)
+[![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20Android-lightgrey.svg)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.7.0+-blue.svg)](https://dart.dev)
+[![Flutter](https://img.shields.io/badge/Flutter-3.24.0+-blue.svg)](https://flutter.dev)
 
 ## 🚀 Features
 
@@ -52,8 +57,8 @@ void main() async {
     timestamp: DateTime.now().toUtc(),
   );
 
-  // Get emotion results
-  final results = await engine.consumeReady();
+  // Get emotion results (synchronous - no await needed)
+  final results = engine.consumeReady();
   for (final result in results) {
     print('Emotion: ${result.emotion} (${(result.confidence * 100).toStringAsFixed(1)}%)');
   }
@@ -111,8 +116,8 @@ wear.streamHR(interval: Duration(seconds: 1)).listen((metrics) {
     timestamp: DateTime.now().toUtc(),
   );
   
-  // Get emotion results
-  final emotions = await emotionEngine.consumeReady();
+  // Get emotion results (synchronous - no await needed)
+  final emotions = emotionEngine.consumeReady();
   for (final emotion in emotions) {
     // Use emotion data in your app
     updateUI(emotion);
