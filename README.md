@@ -25,7 +25,7 @@ Add `synheart_emotion` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  synheart_emotion: ^0.2.1
+  synheart_emotion: ^0.2.2
 ```
 
 Then run:
@@ -91,7 +91,7 @@ First, add both to your `pubspec.yaml`:
 ```yaml
 dependencies:
   synheart_wear: ^0.1.0    # For wearable data
-  synheart_emotion: ^0.2.1  # For emotion inference
+  synheart_emotion: ^0.2.2  # For emotion inference
 ```
 
 Then integrate in your app:
