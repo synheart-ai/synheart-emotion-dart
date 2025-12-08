@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated CI workflows to use `--no-fatal-infos` flag for static analysis, allowing info-level suggestions without failing builds
 - Enhanced CI error reporting with better diagnostics for failed jobs
 
-## [0.2.0] - 2024-11-07
+## [0.2.0] - 2025-11-07
 
 ### Breaking Changes
 - **Removed `LinearSvmModel` class**: The `LinearSvmModel` class and `model_linear_svm.dart` file have been removed. The package now focuses exclusively on ONNX models.
