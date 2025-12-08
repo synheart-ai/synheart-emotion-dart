@@ -84,8 +84,8 @@ class EmotionEngine {
         _log(
           'warn',
           'Invalid HR value: $hr (valid range: '
-          '${FeatureExtractor.minValidHr}-'
-          '${FeatureExtractor.maxValidHr} BPM)',
+              '${FeatureExtractor.minValidHr}-'
+              '${FeatureExtractor.maxValidHr} BPM)',
         );
         return;
       }
@@ -156,7 +156,7 @@ class EmotionEngine {
         _log(
           'error',
           'ONNX async models not supported in consumeReady(). '
-          'Use Linear SVM model.',
+              'Use Linear SVM model.',
         );
         return results;
       } else {
@@ -178,7 +178,7 @@ class EmotionEngine {
       _log(
         'info',
         'Emitted result: ${result.emotion} '
-        '(${(result.confidence * 100).toStringAsFixed(1)}%)',
+            '(${(result.confidence * 100).toStringAsFixed(1)}%)',
       );
     } catch (e) {
       _log('error', 'Error during inference: $e');

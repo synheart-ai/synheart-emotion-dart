@@ -6,8 +6,7 @@ abstract class EmotionError implements Exception {
   factory EmotionError.tooFewRR({
     required int minExpected,
     required int actual,
-  }) =>
-      _TooFewRRError(minExpected, actual);
+  }) => _TooFewRRError(minExpected, actual);
 
   /// Invalid input data
   factory EmotionError.badInput(String reason) => _BadInputError(reason);
@@ -16,8 +15,7 @@ abstract class EmotionError implements Exception {
   factory EmotionError.modelIncompatible({
     required int expectedFeats,
     required int actualFeats,
-  }) =>
-      _ModelIncompatibleError(expectedFeats, actualFeats);
+  }) => _ModelIncompatibleError(expectedFeats, actualFeats);
 
   /// Feature extraction failed
   factory EmotionError.featureExtractionFailed(String reason) =>
@@ -35,10 +33,10 @@ abstract class EmotionError implements Exception {
 
 class _TooFewRRError extends EmotionError {
   _TooFewRRError(this.minExpected, this.actual)
-      : super(
-          'Too few RR intervals: expected at least $minExpected, got $actual',
-          {'minExpected': minExpected, 'actual': actual},
-        );
+    : super(
+        'Too few RR intervals: expected at least $minExpected, got $actual',
+        {'minExpected': minExpected, 'actual': actual},
+      );
 
   final int minExpected;
   final int actual;
@@ -50,11 +48,11 @@ class _BadInputError extends EmotionError {
 
 class _ModelIncompatibleError extends EmotionError {
   _ModelIncompatibleError(this.expectedFeats, this.actualFeats)
-      : super(
-          'Model incompatible: expected $expectedFeats features, '
-          'got $actualFeats',
-          {'expectedFeats': expectedFeats, 'actualFeats': actualFeats},
-        );
+    : super(
+        'Model incompatible: expected $expectedFeats features, '
+        'got $actualFeats',
+        {'expectedFeats': expectedFeats, 'actualFeats': actualFeats},
+      );
 
   final int expectedFeats;
   final int actualFeats;
