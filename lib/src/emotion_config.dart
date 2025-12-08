@@ -43,16 +43,15 @@ class EmotionConfig {
     bool? returnAllProbas,
     double? hrBaseline,
     Map<String, double>? priors,
-  }) =>
-      EmotionConfig(
-        modelId: modelId ?? this.modelId,
-        window: window ?? this.window,
-        step: step ?? this.step,
-        minRrCount: minRrCount ?? this.minRrCount,
-        returnAllProbas: returnAllProbas ?? this.returnAllProbas,
-        hrBaseline: hrBaseline ?? this.hrBaseline,
-        priors: priors ?? this.priors,
-      );
+  }) => EmotionConfig(
+    modelId: modelId ?? this.modelId,
+    window: window ?? this.window,
+    step: step ?? this.step,
+    minRrCount: minRrCount ?? this.minRrCount,
+    returnAllProbas: returnAllProbas ?? this.returnAllProbas,
+    hrBaseline: hrBaseline ?? this.hrBaseline,
+    priors: priors ?? this.priors,
+  );
 
   @override
   String toString() =>
@@ -77,14 +76,14 @@ class EmotionConfig {
 
   @override
   int get hashCode => Object.hash(
-        modelId,
-        window,
-        step,
-        minRrCount,
-        returnAllProbas,
-        hrBaseline,
-        priors,
-      );
+    modelId,
+    window,
+    step,
+    minRrCount,
+    returnAllProbas,
+    hrBaseline,
+    priors,
+  );
 
   bool _mapEquals(Map<String, double>? a, Map<String, double>? b) {
     if (a == null && b == null) {

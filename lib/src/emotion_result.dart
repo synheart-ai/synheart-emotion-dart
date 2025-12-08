@@ -42,13 +42,13 @@ class EmotionResult {
 
   /// Create from JSON
   factory EmotionResult.fromJson(Map<String, dynamic> json) => EmotionResult(
-        timestamp: DateTime.parse(json['timestamp']),
-        emotion: json['emotion'],
-        confidence: json['confidence'].toDouble(),
-        probabilities: Map<String, double>.from(json['probabilities']),
-        features: Map<String, double>.from(json['features']),
-        model: Map<String, dynamic>.from(json['model']),
-      );
+    timestamp: DateTime.parse(json['timestamp']),
+    emotion: json['emotion'],
+    confidence: json['confidence'].toDouble(),
+    probabilities: Map<String, double>.from(json['probabilities']),
+    features: Map<String, double>.from(json['features']),
+    model: Map<String, dynamic>.from(json['model']),
+  );
 
   /// Timestamp when inference was performed
   final DateTime timestamp;
@@ -70,13 +70,13 @@ class EmotionResult {
 
   /// Convert to JSON for storage/transmission
   Map<String, dynamic> toJson() => {
-        'timestamp': timestamp.toIso8601String(),
-        'emotion': emotion,
-        'confidence': confidence,
-        'probabilities': probabilities,
-        'features': features,
-        'model': model,
-      };
+    'timestamp': timestamp.toIso8601String(),
+    'emotion': emotion,
+    'confidence': confidence,
+    'probabilities': probabilities,
+    'features': features,
+    'model': model,
+  };
 
   @override
   String toString() =>
@@ -99,13 +99,13 @@ class EmotionResult {
 
   @override
   int get hashCode => Object.hash(
-        timestamp,
-        emotion,
-        confidence,
-        probabilities,
-        features,
-        model,
-      );
+    timestamp,
+    emotion,
+    confidence,
+    probabilities,
+    features,
+    model,
+  );
 
   bool _mapEquals<K, V>(Map<K, V>? a, Map<K, V>? b) {
     if (a == null && b == null) {

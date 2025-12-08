@@ -17,8 +17,8 @@ class OnnxEmotionModel {
     required this.classNames,
     required OrtSession session,
     required Map<String, dynamic> metadata,
-  })  : _session = session,
-        _metadata = metadata;
+  }) : _session = session,
+       _metadata = metadata;
 
   final String modelId;
   final List<String> inputNames;
