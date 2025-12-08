@@ -1,26 +1,8 @@
+import 'package:meta/meta.dart';
+
 /// Result of emotion inference containing probabilities and metadata
+@immutable
 class EmotionResult {
-  /// Timestamp when inference was performed
-  final DateTime timestamp;
-
-  /// Predicted emotion label (top-1)
-  final String emotion;
-
-  /// Confidence score (top-1 probability)
-  final double confidence;
-
-  /// All label probabilities
-  final Map<String, double> probabilities;
-
-  /// Extracted features used for inference
-  final Map<String, double> features;
-
-  /// Model metadata
-  final Map<String, dynamic> model;
-
-  /// Creates a new [EmotionResult] with the specified values.
-  ///
-  /// Typically created via [fromInference] or [fromJson] factory constructors.
   const EmotionResult({
     required this.timestamp,
     required this.emotion,
@@ -38,8 +20,8 @@ class EmotionResult {
     required Map<String, dynamic> model,
   }) {
     // Find top-1 emotion
-    String topEmotion = '';
-    double topConfidence = 0.0;
+    var topEmotion = '';
+    var topConfidence = 0.0;
 
     for (final entry in probabilities.entries) {
       if (entry.value > topConfidence) {
@@ -58,39 +40,54 @@ class EmotionResult {
     );
   }
 
-  /// Convert to JSON for storage/transmission
-  Map<String, dynamic> toJson() {
-    return {
-      'timestamp': timestamp.toIso8601String(),
-      'emotion': emotion,
-      'confidence': confidence,
-      'probabilities': probabilities,
-      'features': features,
-      'model': model,
-    };
-  }
-
   /// Create from JSON
-  factory EmotionResult.fromJson(Map<String, dynamic> json) {
-    return EmotionResult(
-      timestamp: DateTime.parse(json['timestamp']),
-      emotion: json['emotion'],
-      confidence: json['confidence'].toDouble(),
-      probabilities: Map<String, double>.from(json['probabilities']),
-      features: Map<String, double>.from(json['features']),
-      model: Map<String, dynamic>.from(json['model']),
-    );
-  }
+  factory EmotionResult.fromJson(Map<String, dynamic> json) => EmotionResult(
+        timestamp: DateTime.parse(json['timestamp']),
+        emotion: json['emotion'],
+        confidence: json['confidence'].toDouble(),
+        probabilities: Map<String, double>.from(json['probabilities']),
+        features: Map<String, double>.from(json['features']),
+        model: Map<String, dynamic>.from(json['model']),
+      );
+
+  /// Timestamp when inference was performed
+  final DateTime timestamp;
+
+  /// Predicted emotion label (top-1)
+  final String emotion;
+
+  /// Confidence score (top-1 probability)
+  final double confidence;
+
+  /// All label probabilities
+  final Map<String, double> probabilities;
+
+  /// Extracted features used for inference
+  final Map<String, double> features;
+
+  /// Model metadata
+  final Map<String, dynamic> model;
+
+  /// Convert to JSON for storage/transmission
+  Map<String, dynamic> toJson() => {
+        'timestamp': timestamp.toIso8601String(),
+        'emotion': emotion,
+        'confidence': confidence,
+        'probabilities': probabilities,
+        'features': features,
+        'model': model,
+      };
 
   @override
-  String toString() {
-    return 'EmotionResult($emotion: ${(confidence * 100).toStringAsFixed(1)}%, '
-        'features: ${features.keys.join(', ')})';
-  }
+  String toString() =>
+      'EmotionResult($emotion: ${(confidence * 100).toStringAsFixed(1)}%, '
+      'features: ${features.keys.join(', ')})';
 
   @override
   bool operator ==(Object other) {
-    if (identical(this, other)) return true;
+    if (identical(this, other)) {
+      return true;
+    }
     return other is EmotionResult &&
         other.timestamp == timestamp &&
         other.emotion == emotion &&
@@ -101,23 +98,29 @@ class EmotionResult {
   }
 
   @override
-  int get hashCode {
-    return Object.hash(
-      timestamp,
-      emotion,
-      confidence,
-      probabilities,
-      features,
-      model,
-    );
-  }
+  int get hashCode => Object.hash(
+        timestamp,
+        emotion,
+        confidence,
+        probabilities,
+        features,
+        model,
+      );
 
   bool _mapEquals<K, V>(Map<K, V>? a, Map<K, V>? b) {
-    if (a == null && b == null) return true;
-    if (a == null || b == null) return false;
-    if (a.length != b.length) return false;
+    if (a == null && b == null) {
+      return true;
+    }
+    if (a == null || b == null) {
+      return false;
+    }
+    if (a.length != b.length) {
+      return false;
+    }
     for (final key in a.keys) {
-      if (a[key] != b[key]) return false;
+      if (a[key] != b[key]) {
+        return false;
+      }
     }
     return true;
   }
