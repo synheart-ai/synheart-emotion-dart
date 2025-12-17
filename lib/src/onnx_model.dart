@@ -12,12 +12,6 @@ import 'emotion_error.dart';
 /// Loads and runs ONNX models with metadata from accompanying meta.json
 /// files.
 class OnnxEmotionModel {
-  final String modelId;
-  final List<String> inputNames;
-  final List<String> classNames;
-  final OrtSession _session;
-  final Map<String, dynamic> _metadata;
-
   OnnxEmotionModel._({
     required this.modelId,
     required this.inputNames,
@@ -26,6 +20,12 @@ class OnnxEmotionModel {
     required Map<String, dynamic> metadata,
   }) : _session = session,
        _metadata = metadata;
+
+  final String modelId;
+  final List<String> inputNames;
+  final List<String> classNames;
+  final OrtSession _session;
+  final Map<String, dynamic> _metadata;
 
   /// Load ONNX model from assets
   static Future<OnnxEmotionModel> loadFromAsset({
@@ -59,8 +59,7 @@ class OnnxEmotionModel {
               '${directory.path}${Platform.pathSeparator}$fileName';
 
           final file = File(modelPath);
-          // ignore: avoid_slow_async_io
-          if (!await file.exists()) {
+          if (!file.existsSync()) {
             final byteData = await rootBundle.load(modelAssetPath);
             // ignore: avoid_slow_async_io
             await file.writeAsBytes(byteData.buffer.asUint8List());
@@ -117,8 +116,8 @@ class OnnxEmotionModel {
       final inputs = {inputName: inputTensor};
       final outputs = await _session.run(inputs);
 
-      // ExtraTrees ONNX models output: [label, probabilities] or
-      // [probabilities, label]
+      // ExtraTrees ONNX models output: [label, probabilities]
+      // or [probabilities, label]
       // We need to find the output with key "probabilities"
       List<double> probabilities;
 

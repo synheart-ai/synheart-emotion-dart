@@ -8,7 +8,7 @@ import 'package:synheart_emotion/synheart_emotion.dart';
 /// 1. Initialize an EmotionEngine
 /// 2. Push biometric data (HR and RR intervals)
 /// 3. Consume emotion results
-void main() async {
+void main() {
   // Initialize the emotion engine with default configuration
   final engine = EmotionEngine.fromPretrained(
     const EmotionConfig(
@@ -31,8 +31,8 @@ void main() async {
     );
   }
 
-  // Consume ready results
-  final results = await engine.consumeReady();
+  // Consume ready results (synchronous - no await needed)
+  final results = engine.consumeReady();
 
   // Display results
   if (results.isNotEmpty) {

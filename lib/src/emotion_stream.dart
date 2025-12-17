@@ -4,27 +4,27 @@ import 'emotion_result.dart';
 
 /// Data tick for streaming
 class Tick {
-  final DateTime timestamp;
-  final double hr;
-  final List<double> rrIntervalsMs;
-  final Map<String, double>? motion;
-
   const Tick({
     required this.timestamp,
     required this.hr,
     required this.rrIntervalsMs,
     this.motion,
   });
+
+  final DateTime timestamp;
+  final double hr;
+  final List<double> rrIntervalsMs;
+  final Map<String, double>? motion;
 }
 
 /// Stream helper for emotion inference
 class EmotionStream {
+  EmotionStream(this._engine);
+
   final EmotionEngine _engine;
   final StreamController<EmotionResult> _controller =
       StreamController<EmotionResult>.broadcast();
   StreamSubscription<Tick>? _subscription;
-
-  EmotionStream(this._engine);
 
   /// Create emotion stream from tick stream
   static Stream<EmotionResult> emotionStream(
@@ -38,7 +38,7 @@ class EmotionStream {
   /// Create stream from tick data
   Stream<EmotionResult> _createStream(Stream<Tick> ticks) {
     _subscription = ticks.listen(
-      (tick) async {
+      (tick) {
         // Push data to engine
         _engine.push(
           hr: tick.hr,
@@ -47,8 +47,8 @@ class EmotionStream {
           motion: tick.motion,
         );
 
-        // Consume ready results (now async)
-        final results = await _engine.consumeReady();
+        // Consume ready results (synchronous)
+        final results = _engine.consumeReady();
         for (final result in results) {
           if (!_controller.isClosed) {
             _controller.add(result);

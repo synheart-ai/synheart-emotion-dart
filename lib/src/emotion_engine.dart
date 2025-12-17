@@ -7,17 +7,17 @@ import 'features.dart';
 
 /// Data point for ring buffer
 class _DataPoint {
-  final DateTime timestamp;
-  final double hr;
-  final List<double> rrIntervalsMs;
-  final Map<String, double>? motion;
-
   _DataPoint({
     required this.timestamp,
     required this.hr,
     required this.rrIntervalsMs,
     this.motion,
   });
+
+  final DateTime timestamp;
+  final double hr;
+  final List<double> rrIntervalsMs;
+  final Map<String, double>? motion;
 }
 
 /// Main emotion inference engine.
@@ -25,28 +25,6 @@ class _DataPoint {
 /// Processes biosignal data using a sliding window approach and produces
 /// emotion predictions at configurable intervals.
 class EmotionEngine {
-  /// Expected number of core HRV features (SDNN, RMSSD, pNN50, Mean_RR,
-  /// HR_mean).
-  static const int expectedFeatureCount = 5;
-
-  /// Configuration for this emotion engine instance.
-  final EmotionConfig config;
-
-  /// The inference model used for emotion prediction.
-  ///
-  /// Can be an OnnxEmotionModel or null if no model is loaded.
-  final dynamic model; // Can be LinearSvmModel or OnnxEmotionModel
-
-  /// Ring buffer for sliding window
-  final Queue<_DataPoint> _buffer = Queue<_DataPoint>();
-
-  /// Last emission timestamp
-  DateTime? _lastEmission;
-
-  /// Logging callback
-  void Function(String level, String message, {Map<String, Object?>? context})?
-  onLog;
-
   EmotionEngine._({required this.config, required this.model, this.onLog});
 
   /// Create engine from pretrained model
@@ -73,6 +51,25 @@ class EmotionEngine {
     return EmotionEngine._(config: config, model: inferenceModel, onLog: onLog);
   }
 
+  /// Expected number of core HRV features (hr_mean, sdnn, rmssd).
+  static const int expectedFeatureCount = 3;
+
+  /// Configuration for this emotion engine instance.
+  final EmotionConfig config;
+
+  /// The inference model used for emotion prediction.
+  final dynamic model; // Can be LinearSvmModel or OnnxEmotionModel
+
+  /// Ring buffer for sliding window
+  final Queue<_DataPoint> _buffer = Queue<_DataPoint>();
+
+  /// Last emission timestamp
+  DateTime? _lastEmission;
+
+  /// Logging callback
+  void Function(String level, String message, {Map<String, Object?>? context})?
+  onLog;
+
   /// Push new data point into the engine
   void push({
     required double hr,
@@ -87,7 +84,8 @@ class EmotionEngine {
         _log(
           'warn',
           'Invalid HR value: $hr (valid range: '
-              '${FeatureExtractor.minValidHr}-${FeatureExtractor.maxValidHr} BPM)',
+              '${FeatureExtractor.minValidHr}-'
+              '${FeatureExtractor.maxValidHr} BPM)',
         );
         return;
       }
@@ -120,7 +118,10 @@ class EmotionEngine {
   }
 
   /// Consume ready results (throttled by step interval)
-  Future<List<EmotionResult>> consumeReady() async {
+  ///
+  /// Returns results synchronously (no await required), matching API
+  /// specification across all platforms (Python, Kotlin, Swift).
+  List<EmotionResult> consumeReady() {
     final results = <EmotionResult>[];
 
     if (model == null) {
@@ -146,11 +147,18 @@ class EmotionEngine {
         return results; // Feature extraction failed
       }
 
-      // Run inference (supports both sync and async models)
-      Map<String, double> probabilities;
+      // Run inference synchronously (Linear SVM model)
+      // Note: ONNX async models are not supported in consumeReady()
+      // to maintain API parity with Python, Kotlin, and Swift SDKs
+      // which are all synchronous.
+      final Map<String, double> probabilities;
       if (model.runtimeType.toString().contains('Onnx')) {
-        // ONNX model requires async
-        probabilities = await model.predictAsync(features);
+        _log(
+          'error',
+          'ONNX async models not supported in consumeReady(). '
+              'Use Linear SVM model.',
+        );
+        return results;
       } else {
         // Linear SVM model is synchronous
         probabilities = model.predict(features);
@@ -250,8 +258,8 @@ class EmotionEngine {
 
     // Remove all expired data points at once if any found
     if (firstValidIndex > 0) {
-      // Rebuild queue with only valid data points (more efficient than
-      // repeated removeFirst)
+      // Rebuild queue with only valid data points
+      // (more efficient than repeated removeFirst)
       final validPoints = _buffer.skip(firstValidIndex).toList();
       _buffer
         ..clear()

@@ -114,7 +114,7 @@ void main() {
       expect(avgTimeMs, lessThan(1.0));
     });
 
-    test('Inference cycle performance', () async {
+    test('Inference cycle performance', () {
       // Fill buffer with enough data
       for (int i = 0; i < 10; i++) {
         engine.push(
@@ -126,7 +126,7 @@ void main() {
 
       final stopwatch = Stopwatch()..start();
       for (int i = 0; i < 100; i++) {
-        await engine.consumeReady();
+        engine.consumeReady();
       }
       stopwatch.stop();
 
@@ -137,7 +137,7 @@ void main() {
       expect(avgTimeMs, lessThan(5.0));
     });
 
-    test('Memory usage during continuous operation', () async {
+    test('Memory usage during continuous operation', () {
       // Simulate 5 minutes of data (600 pushes at 500ms intervals)
       for (int i = 0; i < 600; i++) {
         engine.push(
@@ -150,7 +150,7 @@ void main() {
 
         // Run inference every 10 pushes
         if (i % 10 == 0) {
-          await engine.consumeReady();
+          engine.consumeReady();
         }
       }
 

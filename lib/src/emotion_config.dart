@@ -1,8 +1,18 @@
-import 'package:flutter/foundation.dart';
+import 'package:meta/meta.dart';
 
 /// Configuration for the emotion inference engine
 @immutable
 class EmotionConfig {
+  const EmotionConfig({
+    this.modelId = 'svm_linear_wrist_sdnn_v1_0',
+    this.window = const Duration(seconds: 60),
+    this.step = const Duration(seconds: 5),
+    this.minRrCount = 30,
+    this.returnAllProbas = true,
+    this.hrBaseline,
+    this.priors,
+  });
+
   /// Model identifier (default: svm_linear_wrist_sdnn_v1_0)
   final String modelId;
 
@@ -23,20 +33,6 @@ class EmotionConfig {
 
   /// Optional label priors for calibration
   final Map<String, double>? priors;
-
-  /// Creates a new [EmotionConfig] with the specified parameters.
-  ///
-  /// All parameters are optional and have sensible defaults for typical
-  /// use cases.
-  const EmotionConfig({
-    this.modelId = 'svm_linear_wrist_sdnn_v1_0',
-    this.window = const Duration(seconds: 60),
-    this.step = const Duration(seconds: 5),
-    this.minRrCount = 30,
-    this.returnAllProbas = true,
-    this.hrBaseline,
-    this.priors,
-  });
 
   /// Create a copy with modified fields
   EmotionConfig copyWith({
@@ -59,7 +55,8 @@ class EmotionConfig {
 
   @override
   String toString() =>
-      'EmotionConfig(modelId: $modelId, window: ${window.inSeconds}s, '
+      'EmotionConfig(modelId: $modelId, '
+      'window: ${window.inSeconds}s, '
       'step: ${step.inSeconds}s, minRrCount: $minRrCount)';
 
   @override

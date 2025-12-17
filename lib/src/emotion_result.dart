@@ -1,29 +1,8 @@
-import 'package:flutter/foundation.dart';
+import 'package:meta/meta.dart';
 
 /// Result of emotion inference containing probabilities and metadata
 @immutable
 class EmotionResult {
-  /// Timestamp when inference was performed
-  final DateTime timestamp;
-
-  /// Predicted emotion label (top-1)
-  final String emotion;
-
-  /// Confidence score (top-1 probability)
-  final double confidence;
-
-  /// All label probabilities
-  final Map<String, double> probabilities;
-
-  /// Extracted features used for inference
-  final Map<String, double> features;
-
-  /// Model metadata
-  final Map<String, dynamic> model;
-
-  /// Creates a new [EmotionResult] with the specified values.
-  ///
-  /// Typically created via fromInference or fromJson factory constructors.
   const EmotionResult({
     required this.timestamp,
     required this.emotion,
@@ -61,16 +40,6 @@ class EmotionResult {
     );
   }
 
-  /// Convert to JSON for storage/transmission
-  Map<String, dynamic> toJson() => {
-    'timestamp': timestamp.toIso8601String(),
-    'emotion': emotion,
-    'confidence': confidence,
-    'probabilities': probabilities,
-    'features': features,
-    'model': model,
-  };
-
   /// Create from JSON
   factory EmotionResult.fromJson(Map<String, dynamic> json) => EmotionResult(
     timestamp: DateTime.parse(json['timestamp']),
@@ -80,6 +49,34 @@ class EmotionResult {
     features: Map<String, double>.from(json['features']),
     model: Map<String, dynamic>.from(json['model']),
   );
+
+  /// Timestamp when inference was performed
+  final DateTime timestamp;
+
+  /// Predicted emotion label (top-1)
+  final String emotion;
+
+  /// Confidence score (top-1 probability)
+  final double confidence;
+
+  /// All label probabilities
+  final Map<String, double> probabilities;
+
+  /// Extracted features used for inference
+  final Map<String, double> features;
+
+  /// Model metadata
+  final Map<String, dynamic> model;
+
+  /// Convert to JSON for storage/transmission
+  Map<String, dynamic> toJson() => {
+    'timestamp': timestamp.toIso8601String(),
+    'emotion': emotion,
+    'confidence': confidence,
+    'probabilities': probabilities,
+    'features': features,
+    'model': model,
+  };
 
   @override
   String toString() =>

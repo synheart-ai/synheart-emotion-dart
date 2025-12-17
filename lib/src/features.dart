@@ -53,8 +53,8 @@ class FeatureExtractor {
     return sqrt(variance);
   }
 
-  /// Extract RMSSD (root mean square of successive differences) from RR
-  /// intervals
+  /// Extract RMSSD (root mean square of successive differences)
+  /// from RR intervals
   static double extractRmssd(List<double> rrIntervalsMs) {
     if (rrIntervalsMs.length < 2) {
       return 0;
@@ -77,8 +77,8 @@ class FeatureExtractor {
     return sqrt(sumSquaredDiffs / (cleaned.length - 1));
   }
 
-  /// Extract pNN50 (percentage of successive RR intervals differing by more
-  /// than 50ms)
+  /// Extract pNN50 (percentage of successive RR intervals
+  /// differing by more than 50ms)
   static double extractPnn50(List<double> rrIntervalsMs) {
     if (rrIntervalsMs.length < 2) {
       return 0;
@@ -99,7 +99,7 @@ class FeatureExtractor {
     }
 
     // Return percentage
-    return (count / (cleaned.length - 1)) * 100.0;
+    return (count / (cleaned.length - 1)) * 100;
   }
 
   /// Extract Mean RR interval from RR intervals
@@ -139,12 +139,13 @@ class FeatureExtractor {
     return features;
   }
 
-  /// Clean RR intervals by removing physiologically invalid values and
-  /// artifacts.
+  /// Clean RR intervals by removing physiologically invalid values
+  /// and artifacts.
   ///
   /// Removes:
-  /// - RR intervals outside valid range (minValidRrMs to maxValidRrMs)
-  /// - Large jumps between successive intervals (> maxRrJumpMs)
+  /// - RR intervals outside valid range
+  ///   ([minValidRrMs] to [maxValidRrMs])
+  /// - Large jumps between successive intervals (> [maxRrJumpMs])
   ///
   /// Returns filtered list of clean RR intervals.
   static List<double> _cleanRrIntervals(List<double> rrIntervalsMs) {
@@ -209,7 +210,7 @@ class FeatureExtractor {
         if (std > 0) {
           normalized[featureName] = (value - mean) / std;
         } else {
-          normalized[featureName] = 0.0;
+          normalized[featureName] = 0;
         }
       } else {
         // Keep original value if no normalization params

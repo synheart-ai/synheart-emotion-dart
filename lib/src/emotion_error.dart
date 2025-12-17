@@ -1,12 +1,5 @@
 /// Errors that can occur during emotion inference
 abstract class EmotionError implements Exception {
-  /// Error message
-  final String message;
-
-  /// Additional context
-  final Map<String, dynamic>? context;
-
-  /// Creates a new [EmotionError] with the given message and optional context.
   const EmotionError(this.message, [this.context]);
 
   /// Too few RR intervals for stable inference
@@ -28,19 +21,25 @@ abstract class EmotionError implements Exception {
   factory EmotionError.featureExtractionFailed(String reason) =>
       _FeatureExtractionError(reason);
 
+  /// Error message
+  final String message;
+
+  /// Additional context
+  final Map<String, dynamic>? context;
+
   @override
   String toString() => 'EmotionError: $message';
 }
 
 class _TooFewRRError extends EmotionError {
-  final int minExpected;
-  final int actual;
-
   _TooFewRRError(this.minExpected, this.actual)
     : super(
         'Too few RR intervals: expected at least $minExpected, got $actual',
         {'minExpected': minExpected, 'actual': actual},
       );
+
+  final int minExpected;
+  final int actual;
 }
 
 class _BadInputError extends EmotionError {
@@ -48,15 +47,15 @@ class _BadInputError extends EmotionError {
 }
 
 class _ModelIncompatibleError extends EmotionError {
-  final int expectedFeats;
-  final int actualFeats;
-
   _ModelIncompatibleError(this.expectedFeats, this.actualFeats)
     : super(
         'Model incompatible: expected $expectedFeats features, '
         'got $actualFeats',
         {'expectedFeats': expectedFeats, 'actualFeats': actualFeats},
       );
+
+  final int expectedFeats;
+  final int actualFeats;
 }
 
 class _FeatureExtractionError extends EmotionError {

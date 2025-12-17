@@ -93,18 +93,18 @@ void main() {
       expect(statsAfter['count'], equals(1));
     });
 
-    test('consumeReady returns empty list when not enough data', () async {
+    test('consumeReady returns empty list when not enough data', () {
       engine.push(
         hr: 70.0,
         rrIntervalsMs: [800.0], // Only 1 RR interval, need 5
         timestamp: DateTime.now().toUtc(),
       );
 
-      final results = await engine.consumeReady();
+      final results = engine.consumeReady();
       expect(results, isEmpty);
     });
 
-    test('consumeReady returns results when enough data', () async {
+    test('consumeReady returns results when enough data', () {
       // Create a mock model for testing
       final mockModel = _MockEmotionModel();
       final engineWithModel = EmotionEngine.fromPretrained(
@@ -125,7 +125,7 @@ void main() {
         );
       }
 
-      final results = await engineWithModel.consumeReady();
+      final results = engineWithModel.consumeReady();
       expect(results, isNotEmpty);
 
       final result = results.first;
