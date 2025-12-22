@@ -9,7 +9,8 @@ import 'emotion_error.dart';
 
 /// ONNX-based model loader for emotion inference.
 ///
-/// Loads and runs ONNX models with metadata from accompanying meta.json files.
+/// Loads and runs ONNX models with metadata from accompanying meta.json
+/// files.
 class OnnxEmotionModel {
   OnnxEmotionModel._({
     required this.modelId,
@@ -60,6 +61,7 @@ class OnnxEmotionModel {
           final file = File(modelPath);
           if (!file.existsSync()) {
             final byteData = await rootBundle.load(modelAssetPath);
+            // ignore: avoid_slow_async_io
             await file.writeAsBytes(byteData.buffer.asUint8List());
           }
 
