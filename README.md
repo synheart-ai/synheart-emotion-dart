@@ -25,7 +25,7 @@ Add `synheart_emotion` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  synheart_emotion: ^0.2.1
+  synheart_emotion: ^0.2.2
 ```
 
 Then run:
@@ -91,7 +91,7 @@ First, add both to your `pubspec.yaml`:
 ```yaml
 dependencies:
   synheart_wear: ^0.1.0    # For wearable data
-  synheart_emotion: ^0.2.1  # For emotion inference
+  synheart_emotion: ^0.2.2  # For emotion inference
 ```
 
 Then integrate in your app:
@@ -305,7 +305,7 @@ for (final emotion in emotionResults) {
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Apache 2.0 License
 
 ## 🤝 Contributing
 
@@ -332,3 +332,9 @@ We welcome contributions! See our [Contributing Guidelines](https://github.com/s
 **Made with ❤️ by the Synheart AI Team**
 
 _Technology with a heartbeat._
+
+## Patent Pending Notice
+
+This project is provided under an open-source license. Certain underlying systems, methods, and architectures described or implemented herein may be covered by one or more pending patent applications.
+
+Nothing in this repository grants any license, express or implied, to any patents or patent applications, except as provided by the applicable open-source license.
