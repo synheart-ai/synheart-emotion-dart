@@ -5,6 +5,33 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Comprehensive integration tests matching synheart-core EmotionHead usage pattern
+  - Tests for EmotionEngine initialization with synheart-core config (10s window, 1s step)
+  - Tests for push/consumeReady synchronous API pattern
+  - Tests for handling synthetic RR intervals from derived HRV features
+  - Tests for time-series data processing with proper window management
+  - Tests for graceful handling of invalid/missing features
+  - Tests for buffer management and clearing
+  - Tests for consumeReady throttling by step interval
+  - Tests for personalization with HR baseline
+  - Tests for accurate buffer statistics
+
+- HSI schema compatibility tests
+  - Tests verifying EmotionResult probabilities match HSI EmotionState schema
+  - Tests for correct mapping of 'Stressed', 'Calm', 'Amused' categories
+  - Tests for toJson output HSI compatibility
+  - Tests validating derived fields (activation, valence) calculations
+  - Tests ensuring probabilities are valid (0.0-1.0 range)
+
+### Improved
+- Test coverage increased from 14 to 36 tests (157% increase)
+- Validated compatibility with synheart-core-dart v0.0.1 EmotionHead implementation
+- Confirmed performance metrics meet <5ms inference latency targets
+- Verified ring buffer correctly manages 10s window with data trimming
+
 ## [0.2.3] - 2025-12-26
 
 ### Fixed
