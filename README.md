@@ -17,7 +17,7 @@
 - **🧠 On-Device Processing**: All computations happen locally for privacy
 - **📊 Unified Output**: Consistent emotion labels with confidence scores
 - **🔒 Privacy-First**: No raw biometric data leaves your device
-- **⚡ High Performance**: < 10ms inference latency on mid-range devices
+- **⚡ High Performance**: < 5ms inference latency 
 - **🧬 14 HRV Features**: Comprehensive feature extraction (time-domain, frequency-domain, non-linear)
 - **🤖 ONNX Models**: ExtraTrees classifiers optimized for on-device inference
 
@@ -140,7 +140,8 @@ The library uses **ExtraTrees (Extremely Randomized Trees)** classifiers trained
 - **14 HRV Features**: Time-domain, frequency-domain, and non-linear metrics
 - **Binary Classification**: Baseline vs Stress detection
 - **ONNX Format**: Optimized for on-device inference
-- **Accuracy**: ~78% on WESAD validation set
+- **Accuracy**: 78.4% on WESAD validation set (LOSO CV)
+- **F1 Score**: 72.6% on WESAD validation set (LOSO CV)
 
 ### Available Models
 
@@ -197,9 +198,6 @@ class EmotionEngine {
     Map<String, double>? motion,
   });
 
-  // Get ready emotion results (synchronous - for Linear SVM models)
-  List<EmotionResult> consumeReady();
-
   // Get ready emotion results (async - for ONNX models)
   Future<List<EmotionResult>> consumeReadyAsync();
 
@@ -248,7 +246,7 @@ class EmotionResult {
 - **No Data Retention**: Raw biometric data is not retained after processing
 - **No Network Calls**: No data is sent to external servers
 - **Privacy-First Design**: No built-in storage - you control what gets persisted
-- **Real Trained Models**: Uses WESAD-trained ExtraTrees models with ~78% accuracy
+- **Real Trained Models**: Uses WESAD-trained ExtraTrees models with 78.4% accuracy (72.6% F1 score)
 - **14-Feature Extraction**: Comprehensive HRV analysis including time-domain, frequency-domain, and non-linear metrics
 
 ## 📱 Example App
@@ -300,7 +298,8 @@ Tests cover:
 - **Model Size**: ~200-300 KB per model
 - **CPU Usage**: < 3% during active streaming
 - **Memory**: < 5 MB (engine + buffers + ONNX runtime)
-- **Accuracy**: ~78% on WESAD dataset (binary classification: Baseline vs Stress)
+- **Accuracy**: 78.4% on WESAD dataset (binary classification: Baseline vs Stress)
+- **F1 Score**: 72.6% on WESAD dataset (LOSO CV)
 
 **Benchmarks:**
 - 14-feature extraction: < 3ms
