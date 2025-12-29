@@ -4,7 +4,7 @@ import 'package:meta/meta.dart';
 @immutable
 class EmotionConfig {
   const EmotionConfig({
-    this.modelId = 'extratrees_chest_ecg_w120s60_binary_v1_0',
+    this.modelId = 'extratrees_w120s60_binary_v1_0',
     this.window = const Duration(seconds: 120),
     this.step = const Duration(seconds: 60),
     this.minRrCount = 30,
@@ -13,7 +13,7 @@ class EmotionConfig {
     this.priors,
   });
 
-  /// Model identifier (default: extratrees_chest_ecg_w120s60_binary_v1_0)
+  /// Model identifier (default: extratrees_w120s60_binary_v1_0)
   /// Supports: ExtraTrees_60_5, ExtraTrees_120_5, ExtraTrees_120_60
   final String modelId;
 

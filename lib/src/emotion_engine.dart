@@ -300,7 +300,11 @@ class EmotionEngine {
 
     // Apply personalization if configured
     if (config.hrBaseline != null) {
-      features['hr_mean'] = features['hr_mean']! - config.hrBaseline!;
+      // For 14-feature mode, HR is stored as 'HR', for legacy mode it's 'hr_mean'
+      final hrKey = _uses14Features ? 'HR' : 'hr_mean';
+      if (features.containsKey(hrKey)) {
+        features[hrKey] = features[hrKey]! - config.hrBaseline!;
+      }
     }
 
     return features;

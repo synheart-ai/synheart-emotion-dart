@@ -291,6 +291,19 @@ class OnnxEmotionModel {
           value = featureMap['hrv_sampen'] ?? featureMap['sampen'];
         } else if (key == 'hrv_dfa_alpha1') {
           value = featureMap['hrv_dfa_alpha1'] ?? featureMap['dfa_alpha1'];
+        } else if (key == 'mean_rr') {
+          value = featureMap['mean_rr'] ?? featureMap['mean_rr'];
+        }
+      }
+      
+      // Verify we're extracting exactly 14 features for ExtraTrees models
+      if (inputNames.length == 14) {
+        if (featureVector.length != 14) {
+          throw EmotionError.badInput(
+            'Feature count mismatch: expected 14 features, '
+            'extracted ${featureVector.length}. Model requires exactly 14 features: '
+            '${inputNames.join(", ")}'
+          );
         }
       }
 

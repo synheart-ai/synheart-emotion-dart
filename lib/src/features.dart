@@ -134,15 +134,35 @@ class FeatureExtractor {
       // Use 14-feature extraction for ExtraTrees models
       final featureList = HrvFeaturesComplete.extractAllFeatures(rrIntervalsMs);
       
-      // Map to feature names expected by model
+      // Map to feature names expected by model (must match metadata input_names exactly)
       // Order: ['RMSSD', 'Mean_RR', 'HRV_SDNN', 'pNN50', 
       // 'HRV_HF', 'HRV_LF', 'HRV_HF_nu', 'HRV_LF_nu', 'HRV_LFHF', 'HRV_TP', 
       // 'HRV_SD1SD2', 'HRV_Sampen', 'HRV_DFA_alpha1', 'HR']
+      // These names must exactly match the input_names in the ONNX model metadata
       final featureNames = [
-        'RMSSD', 'Mean_RR', 'HRV_SDNN', 'pNN50',
-        'HRV_HF', 'HRV_LF', 'HRV_HF_nu', 'HRV_LF_nu', 'HRV_LFHF', 'HRV_TP',
-        'HRV_SD1SD2', 'HRV_Sampen', 'HRV_DFA_alpha1', 'HR'
+        'RMSSD',        // 0: Root Mean Square of Successive Differences
+        'Mean_RR',      // 1: Mean RR interval
+        'HRV_SDNN',     // 2: Standard Deviation of NN intervals
+        'pNN50',        // 3: Percentage of successive differences > 50ms
+        'HRV_HF',       // 4: High Frequency power
+        'HRV_LF',       // 5: Low Frequency power
+        'HRV_HF_nu',    // 6: Normalized HF
+        'HRV_LF_nu',    // 7: Normalized LF
+        'HRV_LFHF',     // 8: LF/HF ratio
+        'HRV_TP',       // 9: Total Power
+        'HRV_SD1SD2',   // 10: Poincaré plot ratio
+        'HRV_Sampen',   // 11: Sample Entropy
+        'HRV_DFA_alpha1', // 12: Detrended Fluctuation Analysis
+        'HR'            // 13: Heart Rate in BPM
       ];
+      
+      // Verify we have exactly 14 features
+      if (featureList.length != 14) {
+        throw ArgumentError(
+          'Expected 14 features, got ${featureList.length}. '
+          'Feature extraction may have failed.'
+        );
+      }
       
       final features = <String, double>{};
       for (var i = 0; i < featureList.length && i < featureNames.length; i++) {
