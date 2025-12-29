@@ -17,7 +17,9 @@
 - **🧠 On-Device Processing**: All computations happen locally for privacy
 - **📊 Unified Output**: Consistent emotion labels with confidence scores
 - **🔒 Privacy-First**: No raw biometric data leaves your device
-- **⚡ High Performance**: < 5ms inference latency on mid-range devices
+- **⚡ High Performance**: < 10ms inference latency on mid-range devices
+- **🧬 14 HRV Features**: Comprehensive feature extraction (time-domain, frequency-domain, non-linear)
+- **🤖 ONNX Models**: ExtraTrees classifiers optimized for on-device inference
 
 ## 📦 Installation
 
@@ -25,7 +27,7 @@ Add `synheart_emotion` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  synheart_emotion: ^0.2.2
+  synheart_emotion: ^0.2.3
 ```
 
 Then run:
@@ -88,7 +90,7 @@ First, add both to your `pubspec.yaml`:
 ```yaml
 dependencies:
   synheart_wear: ^0.1.0    # For wearable data
-  synheart_emotion: ^0.2.2  # For emotion inference
+  synheart_emotion: ^0.2.3  # For emotion inference
 ```
 
 Then integrate in your app:
@@ -183,7 +185,7 @@ class EmotionEngine {
   // Create engine with pretrained model
   factory EmotionEngine.fromPretrained(
     EmotionConfig config, {
-    LinearSvmModel? model,
+    dynamic model,
     void Function(String level, String message, {Map<String, Object?>? context})? onLog,
   });
 
@@ -215,7 +217,7 @@ Configuration for the emotion engine:
 
 ```dart
 class EmotionConfig {
-  final String modelId;                 // Model identifier (default: extratrees_chest_ecg_w120s60_binary_v1_0)
+  final String modelId;                 // Model identifier (default: extratrees_w120s60_binary_v1_0)
   final Duration window;                // Rolling window size (default: 120s)
   final Duration step;                  // Emission cadence (default: 60s)
   final int minRrCount;                 // Min RR intervals needed (default: 30)
