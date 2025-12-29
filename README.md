@@ -286,6 +286,10 @@ Tests cover:
 - Model inference performance
 - Edge case handling
 - Memory usage patterns
+- Integration with synheart-core EmotionHead
+- HSI schema compatibility validation
+- Time-series data processing with ring buffer
+- Push/consumeReadyAsync API pattern
 
 ## 📊 Performance
 
@@ -333,6 +337,40 @@ Biometric Data (HR, RR)
 ```
 
 ## 🔗 Integration
+
+### With synheart-core (HSI)
+
+**synheart_emotion** is designed to integrate seamlessly with [synheart-core](https://github.com/synheart-ai/synheart-core) as part of the Human State Interface (HSI) system:
+
+```dart
+import 'package:synheart_core/synheart_core.dart';
+import 'package:synheart_emotion/synheart_emotion.dart';
+
+// Initialize synheart-core (includes emotion capability)
+await Synheart.initialize(
+  userId: 'user_123',
+  config: SynheartConfig(
+    enableWear: true,
+    enableBehavior: true,
+  ),
+);
+
+// Enable emotion interpretation layer (powered by synheart-emotion)
+await Synheart.enableEmotion();
+
+// Get emotion updates through HSI
+Synheart.onEmotionUpdate.listen((emotion) {
+  print('Baseline: ${emotion.baseline}');
+  print('Stress: ${emotion.stress}');
+});
+```
+
+**HSI Schema Compatibility:**
+- EmotionResult from synheart-emotion maps to HSI EmotionState
+- Output validated against HSI_SPECIFICATION.md
+- Comprehensive integration tests ensure compatibility
+
+See the [synheart-core documentation](https://github.com/synheart-ai/synheart-core) for more details on HSI integration.
 
 ### With synheart-wear
 
