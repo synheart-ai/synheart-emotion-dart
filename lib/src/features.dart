@@ -1,9 +1,11 @@
 import 'dart:math';
+import 'hrv_features_complete.dart';
 
 /// Feature extraction utilities for emotion inference.
 ///
 /// Provides methods for extracting heart rate variability (HRV) metrics
-/// from biosignal data, including HR mean, SDNN, and RMSSD.
+/// from biosignal data. Supports both legacy 5-feature extraction and
+/// new 14-feature extraction for ExtraTrees models.
 class FeatureExtractor {
   /// Minimum valid RR interval in milliseconds (300ms = 200 BPM).
   static const double minValidRrMs = 300;
@@ -118,25 +120,68 @@ class FeatureExtractor {
   }
 
   /// Extract all features for emotion inference
+  /// 
+  /// Supports both legacy 5-feature mode and new 14-feature mode.
+  /// Set [use14Features] to true to use the complete 14-feature extraction
+  /// required for ExtraTrees_120_60 and similar models.
   static Map<String, double> extractFeatures({
     required List<double> hrValues,
     required List<double> rrIntervalsMs,
     Map<String, double>? motion,
+    bool use14Features = false,
   }) {
-    final features = <String, double>{
-      'hr_mean': extractHrMean(hrValues),
-      'sdnn': extractSdnn(rrIntervalsMs),
-      'rmssd': extractRmssd(rrIntervalsMs),
-      'pnn50': extractPnn50(rrIntervalsMs),
-      'mean_rr': extractMeanRr(rrIntervalsMs),
-    };
+    if (use14Features) {
+      // Use 14-feature extraction for ExtraTrees models
+      final featureList = HrvFeaturesComplete.extractAllFeatures(rrIntervalsMs);
+      
+      // Map to feature names expected by model
+      // Order: ['RMSSD', 'Mean_RR', 'HRV_SDNN', 'pNN50', 
+      // 'HRV_HF', 'HRV_LF', 'HRV_HF_nu', 'HRV_LF_nu', 'HRV_LFHF', 'HRV_TP', 
+      // 'HRV_SD1SD2', 'HRV_Sampen', 'HRV_DFA_alpha1', 'HR']
+      final featureNames = [
+        'RMSSD', 'Mean_RR', 'HRV_SDNN', 'pNN50',
+        'HRV_HF', 'HRV_LF', 'HRV_HF_nu', 'HRV_LF_nu', 'HRV_LFHF', 'HRV_TP',
+        'HRV_SD1SD2', 'HRV_Sampen', 'HRV_DFA_alpha1', 'HR'
+      ];
+      
+      final features = <String, double>{};
+      for (var i = 0; i < featureList.length && i < featureNames.length; i++) {
+        features[featureNames[i]] = featureList[i];
+      }
+      
+      // Add motion features if provided
+      if (motion != null) {
+        features.addAll(motion);
+      }
+      
+      return features;
+    } else {
+      // Legacy 5-feature extraction
+      final features = <String, double>{
+        'hr_mean': extractHrMean(hrValues),
+        'sdnn': extractSdnn(rrIntervalsMs),
+        'rmssd': extractRmssd(rrIntervalsMs),
+        'pnn50': extractPnn50(rrIntervalsMs),
+        'mean_rr': extractMeanRr(rrIntervalsMs),
+      };
 
-    // Add motion features if provided
-    if (motion != null) {
-      features.addAll(motion);
+      // Add motion features if provided
+      if (motion != null) {
+        features.addAll(motion);
+      }
+
+      return features;
     }
-
-    return features;
+  }
+  
+  /// Extract 14 features as a list in the exact order expected by ExtraTrees
+  /// models.
+  ///
+  /// Returns features in order: [RMSSD, Mean_RR, HRV_SDNN, pNN50, HRV_HF,
+  /// HRV_LF, HRV_HF_nu, HRV_LF_nu, HRV_LFHF, HRV_TP, HRV_SD1SD2, HRV_Sampen,
+  /// HRV_DFA_alpha1, HR]
+  static List<double> extract14Features(List<double> rrIntervalsMs) {
+    return HrvFeaturesComplete.extractAllFeatures(rrIntervalsMs);
   }
 
   /// Clean RR intervals by removing physiologically invalid values

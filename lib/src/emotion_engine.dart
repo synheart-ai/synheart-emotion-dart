@@ -51,8 +51,17 @@ class EmotionEngine {
     return EmotionEngine._(config: config, model: inferenceModel, onLog: onLog);
   }
 
-  /// Expected number of core HRV features (hr_mean, sdnn, rmssd).
-  static const int expectedFeatureCount = 3;
+  /// Expected number of core HRV features.
+  /// Note: For 14-feature models (ExtraTrees), this is 14.
+  static const int expectedFeatureCount = 14;
+  
+  /// Check if model uses 14-feature extraction
+  bool get _uses14Features =>
+      config.modelId.contains('extratrees') ||
+      config.modelId.contains('ExtraTrees') ||
+      (model != null &&
+          model.runtimeType.toString().contains('Onnx') &&
+          (model as dynamic).inputNames.length == 14);
 
   /// Configuration for this emotion engine instance.
   final EmotionConfig config;
@@ -153,12 +162,72 @@ class EmotionEngine {
       // which are all synchronous.
       final Map<String, double> probabilities;
       if (model.runtimeType.toString().contains('Onnx')) {
-        _log(
-          'error',
-          'ONNX async models not supported in consumeReady(). '
-              'Use Linear SVM model.',
-        );
+        // ONNX models require async - return empty for now
+        // Callers should use consumeReadyAsync() for ONNX models
         return results;
+      } else {
+        // Linear SVM model is synchronous
+        probabilities = model.predict(features);
+      }
+
+      // Create result
+      final result = EmotionResult.fromInference(
+        timestamp: now,
+        probabilities: probabilities,
+        features: features,
+        model: model.getMetadata(),
+      );
+
+      results.add(result);
+      _lastEmission = now;
+
+      _log(
+        'info',
+        'Emitted result: ${result.emotion} '
+            '(${(result.confidence * 100).toStringAsFixed(1)}%)',
+      );
+    } catch (e) {
+      _log('error', 'Error during inference: $e');
+    }
+
+    return results;
+  }
+
+  /// Consume ready results asynchronously (for ONNX models)
+  ///
+  /// This method supports async ONNX model inference while maintaining
+  /// the same throttling and windowing logic as consumeReady().
+  Future<List<EmotionResult>> consumeReadyAsync() async {
+    final results = <EmotionResult>[];
+
+    if (model == null) {
+      return results;
+    }
+
+    try {
+      // Check if enough time has passed since last emission
+      final now = DateTime.now().toUtc();
+      if (_lastEmission != null &&
+          now.difference(_lastEmission!).compareTo(config.step) < 0) {
+        return results; // Not ready yet
+      }
+
+      // Check if we have enough data
+      if (_buffer.length < 2) {
+        return results; // Not enough data
+      }
+
+      // Extract features from current window
+      final features = _extractWindowFeatures();
+      if (features == null) {
+        return results; // Feature extraction failed
+      }
+
+      // Run inference - support both sync and async models
+      final Map<String, double> probabilities;
+      if (model.runtimeType.toString().contains('Onnx')) {
+        // ONNX model - use async prediction
+        probabilities = await (model as dynamic).predictAsync(features);
       } else {
         // Linear SVM model is synchronous
         probabilities = model.predict(features);
@@ -221,11 +290,12 @@ class EmotionEngine {
       return null;
     }
 
-    // Extract features
+    // Extract features - use 14-feature extraction if model requires it
     final features = FeatureExtractor.extractFeatures(
       hrValues: hrValues,
       rrIntervalsMs: allRrIntervals,
       motion: motionAggregate,
+      use14Features: _uses14Features,
     );
 
     // Apply personalization if configured
