@@ -17,7 +17,7 @@
 - **🧠 On-Device Processing**: All computations happen locally for privacy
 - **📊 Unified Output**: Consistent emotion labels with confidence scores
 - **🔒 Privacy-First**: No raw biometric data leaves your device
-- **⚡ High Performance**: < 5ms inference latency 
+- **⚡ High Performance**: < 1s inference latency 
 - **🧬 14 HRV Features**: Comprehensive feature extraction (time-domain, frequency-domain, non-linear)
 - **🤖 ONNX Models**: ExtraTrees classifiers optimized for on-device inference
 
