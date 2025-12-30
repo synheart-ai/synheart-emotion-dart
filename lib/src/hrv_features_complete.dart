@@ -402,7 +402,14 @@ class HrvFeaturesComplete {
   
   /// Extract all 14 features required for WESAD model
   /// Returns features in exact order expected by model
-  static List<double> extractAllFeatures(List<double> rrIntervalsMs) {
+  /// 
+  /// [meanHr] is optional - if provided, will be used as the HR feature instead
+  /// of computing it from mean RR interval. This allows using actual HR values
+  /// from the wearable device instead of deriving them from RR intervals.
+  static List<double> extractAllFeatures(
+    List<double> rrIntervalsMs, {
+    double? meanHr,
+  }) {
     final validRr = rrIntervalsMs.where((rr) => rr >= 300 && rr <= 2000).toList();
     
     if (validRr.length < 10) {
@@ -424,8 +431,8 @@ class HrvFeaturesComplete {
     final sampEn = computeSampleEntropy(validRr);
     final dfaAlpha1 = computeDfaAlpha1(validRr);
     
-    // Heart rate
-    final hr = meanRr > 0 ? (60000.0 / meanRr) : 0.0;
+    // Heart rate: use provided meanHr if available, otherwise compute from mean RR
+    final hr = meanHr ?? (meanRr > 0 ? (60000.0 / meanRr) : 0.0);
     
     // Return in exact order: ['RMSSD', 'Mean_RR', 'HRV_SDNN', 'pNN50', 
     // 'HRV_HF', 'HRV_LF', 'HRV_HF_nu', 'HRV_LF_nu', 'HRV_LFHF', 'HRV_TP', 

@@ -132,7 +132,17 @@ class FeatureExtractor {
   }) {
     if (use14Features) {
       // Use 14-feature extraction for ExtraTrees models
-      final featureList = HrvFeaturesComplete.extractAllFeatures(rrIntervalsMs);
+      // Compute mean HR from provided HR values if available, otherwise derive from RR
+      double? meanHr;
+      if (hrValues.isNotEmpty) {
+        // Use mean of provided HR values
+        meanHr = hrValues.reduce((a, b) => a + b) / hrValues.length;
+      }
+      
+      final featureList = HrvFeaturesComplete.extractAllFeatures(
+        rrIntervalsMs,
+        meanHr: meanHr,
+      );
       
       // Map to feature names expected by model (must match metadata input_names exactly)
       // Order: ['RMSSD', 'Mean_RR', 'HRV_SDNN', 'pNN50', 
@@ -200,8 +210,17 @@ class FeatureExtractor {
   /// Returns features in order: [RMSSD, Mean_RR, HRV_SDNN, pNN50, HRV_HF,
   /// HRV_LF, HRV_HF_nu, HRV_LF_nu, HRV_LFHF, HRV_TP, HRV_SD1SD2, HRV_Sampen,
   /// HRV_DFA_alpha1, HR]
-  static List<double> extract14Features(List<double> rrIntervalsMs) {
-    return HrvFeaturesComplete.extractAllFeatures(rrIntervalsMs);
+  /// 
+  /// [meanHr] is optional - if provided, will be used as the HR feature instead
+  /// of computing it from mean RR interval.
+  static List<double> extract14Features(
+    List<double> rrIntervalsMs, {
+    double? meanHr,
+  }) {
+    return HrvFeaturesComplete.extractAllFeatures(
+      rrIntervalsMs,
+      meanHr: meanHr,
+    );
   }
 
   /// Clean RR intervals by removing physiologically invalid values

@@ -295,23 +295,28 @@ class OnnxEmotionModel {
           value = featureMap['mean_rr'] ?? featureMap['mean_rr'];
         }
       }
-      
-      // Verify we're extracting exactly 14 features for ExtraTrees models
-      if (inputNames.length == 14) {
-        if (featureVector.length != 14) {
-          throw EmotionError.badInput(
-            'Feature count mismatch: expected 14 features, '
-            'extracted ${featureVector.length}. Model requires exactly 14 features: '
-            '${inputNames.join(", ")}'
-          );
-        }
-      }
 
       if (value == null) {
         throw EmotionError.badInput('Missing required feature: $inputName');
       }
 
       featureVector.add(value);
+    }
+
+    // Verify we extracted exactly 14 features (no more, no less)
+    if (inputNames.length != 14) {
+      throw EmotionError.badInput(
+        'Model configuration error: model expects ${inputNames.length} features, '
+        'but this implementation requires exactly 14 features.'
+      );
+    }
+    
+    if (featureVector.length != 14) {
+      throw EmotionError.badInput(
+        'Feature count mismatch: expected exactly 14 features, '
+        'extracted ${featureVector.length}. Model requires exactly 14 features: '
+        '${inputNames.join(", ")}'
+      );
     }
 
     return featureVector;

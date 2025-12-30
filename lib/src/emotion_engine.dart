@@ -126,72 +126,6 @@ class EmotionEngine {
     }
   }
 
-  /// Push data point with only HR (converts HR to RR intervals automatically)
-  /// 
-  /// This is useful for devices (like watches) that only provide HR values.
-  /// Each HR value is converted to an RR interval using: RR (ms) = 60000 / HR (BPM)
-  /// 
-  /// Example:
-  /// ```dart
-  /// engine.pushFromHr(
-  ///   hr: 72.0,
-  ///   timestamp: DateTime.now(),
-  /// );
-  /// ```
-  void pushFromHr({
-    required double hr,
-    required DateTime timestamp,
-    Map<String, double>? motion,
-  }) {
-    // Convert HR to RR interval: RR (ms) = 60000 / HR (BPM)
-    final rrInterval = hr > 0 ? (60000.0 / hr) : 0.0;
-    
-    // Push with single RR interval derived from HR
-    push(
-      hr: hr,
-      rrIntervalsMs: [rrInterval],
-      timestamp: timestamp,
-      motion: motion,
-    );
-  }
-
-  /// Push multiple HR samples and convert them to RR intervals
-  /// 
-  /// Useful when you have a series of HR measurements from a watch.
-  /// Each HR value is converted to an RR interval.
-  /// 
-  /// Example:
-  /// ```dart
-  /// engine.pushFromHrSamples(
-  ///   hrSamples: [72.0, 73.0, 71.0, 72.5],
-  ///   timestamp: DateTime.now(),
-  /// );
-  /// ```
-  void pushFromHrSamples({
-    required List<double> hrSamples,
-    required DateTime timestamp,
-    Map<String, double>? motion,
-  }) {
-    if (hrSamples.isEmpty) {
-      _log('warn', 'Empty HR samples');
-      return;
-    }
-    
-    // Convert each HR sample to RR interval
-    final rrIntervals = hrSamples.map((hr) => hr > 0 ? (60000.0 / hr) : 0.0).toList();
-    
-    // Use the mean HR for the HR value
-    final meanHr = hrSamples.reduce((a, b) => a + b) / hrSamples.length;
-    
-    // Push with converted RR intervals
-    push(
-      hr: meanHr,
-      rrIntervalsMs: rrIntervals,
-      timestamp: timestamp,
-      motion: motion,
-    );
-  }
-
   /// Consume ready results (throttled by step interval)
   ///
   /// Returns results synchronously (no await required), matching API
@@ -267,25 +201,46 @@ class EmotionEngine {
     final results = <EmotionResult>[];
 
     if (model == null) {
+      _log('warn', 'Model is null, cannot perform inference');
       return results;
     }
 
     try {
       // Check if enough time has passed since last emission
       final now = DateTime.now().toUtc();
-      if (_lastEmission != null &&
-          now.difference(_lastEmission!).compareTo(config.step) < 0) {
-        return results; // Not ready yet
+      if (_lastEmission != null) {
+        final timeSinceLastEmission = now.difference(_lastEmission!);
+        if (timeSinceLastEmission.compareTo(config.step) < 0) {
+          _log(
+            'debug',
+            'Step interval throttling: ${timeSinceLastEmission.inSeconds}s since last emission, need ${config.step.inSeconds}s',
+          );
+          return results; // Not ready yet
+        }
       }
 
       // Check if we have enough data
       if (_buffer.length < 2) {
+        _log('warn', 'Not enough data points in buffer: ${_buffer.length} < 2');
         return results; // Not enough data
       }
 
       // Extract features from current window
-      final features = _extractWindowFeatures();
-      if (features == null) {
+      Map<String, double>? features;
+      try {
+        features = _extractWindowFeatures();
+        if (features == null) {
+          _log('error', 'Feature extraction failed - returned null');
+          return results; // Feature extraction failed
+        }
+
+        _log(
+          'debug',
+          'Features extracted successfully: ${features.keys.join(", ")} (${features.length} features)',
+        );
+      } catch (e, stackTrace) {
+        _log('error', 'Feature extraction threw exception: $e');
+        _log('error', 'Stack trace: $stackTrace');
         return results; // Feature extraction failed
       }
 
@@ -293,10 +248,20 @@ class EmotionEngine {
       final Map<String, double> probabilities;
       if (model.runtimeType.toString().contains('Onnx')) {
         // ONNX model - use async prediction
-        probabilities = await (model as dynamic).predictAsync(features);
+        _log('debug', 'Running ONNX inference...');
+        try {
+          probabilities = await (model as dynamic).predictAsync(features);
+          _log('debug', 'ONNX inference completed successfully');
+        } catch (e, stackTrace) {
+          _log('error', 'ONNX inference failed: $e');
+          _log('error', 'Stack trace: $stackTrace');
+          rethrow;
+        }
       } else {
         // Linear SVM model is synchronous
+        _log('debug', 'Running Linear SVM inference...');
         probabilities = model.predict(features);
+        _log('debug', 'Linear SVM inference completed successfully');
       }
 
       // Create result
@@ -315,8 +280,9 @@ class EmotionEngine {
         'Emitted result: ${result.emotion} '
             '(${(result.confidence * 100).toStringAsFixed(1)}%)',
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       _log('error', 'Error during inference: $e');
+      _log('error', 'Stack trace: $stackTrace');
     }
 
     return results;
@@ -325,6 +291,20 @@ class EmotionEngine {
   /// Extract features from current window
   Map<String, double>? _extractWindowFeatures() {
     if (_buffer.isEmpty) {
+      return null;
+    }
+
+    // Check if the oldest data point in buffer is at least window duration old
+    // This ensures we have a full window of data from (now - window) to now
+    // Allow 2 second tolerance for timing precision and data push intervals
+    final now = DateTime.now().toUtc();
+    final oldestDataAge = now.difference(_buffer.first.timestamp);
+    final requiredAge = config.window - const Duration(seconds: 2); // 2 second tolerance
+    if (oldestDataAge < requiredAge) {
+      _log(
+        'warn',
+        'Buffer window insufficient: oldest data is ${oldestDataAge.inSeconds}s old, need ${config.window.inSeconds}s window. Need ${(requiredAge.inSeconds - oldestDataAge.inSeconds).toStringAsFixed(1)}s more.',
+      );
       return null;
     }
 
