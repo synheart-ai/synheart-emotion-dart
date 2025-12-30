@@ -126,6 +126,72 @@ class EmotionEngine {
     }
   }
 
+  /// Push data point with only HR (converts HR to RR intervals automatically)
+  /// 
+  /// This is useful for devices (like watches) that only provide HR values.
+  /// Each HR value is converted to an RR interval using: RR (ms) = 60000 / HR (BPM)
+  /// 
+  /// Example:
+  /// ```dart
+  /// engine.pushFromHr(
+  ///   hr: 72.0,
+  ///   timestamp: DateTime.now(),
+  /// );
+  /// ```
+  void pushFromHr({
+    required double hr,
+    required DateTime timestamp,
+    Map<String, double>? motion,
+  }) {
+    // Convert HR to RR interval: RR (ms) = 60000 / HR (BPM)
+    final rrInterval = hr > 0 ? (60000.0 / hr) : 0.0;
+    
+    // Push with single RR interval derived from HR
+    push(
+      hr: hr,
+      rrIntervalsMs: [rrInterval],
+      timestamp: timestamp,
+      motion: motion,
+    );
+  }
+
+  /// Push multiple HR samples and convert them to RR intervals
+  /// 
+  /// Useful when you have a series of HR measurements from a watch.
+  /// Each HR value is converted to an RR interval.
+  /// 
+  /// Example:
+  /// ```dart
+  /// engine.pushFromHrSamples(
+  ///   hrSamples: [72.0, 73.0, 71.0, 72.5],
+  ///   timestamp: DateTime.now(),
+  /// );
+  /// ```
+  void pushFromHrSamples({
+    required List<double> hrSamples,
+    required DateTime timestamp,
+    Map<String, double>? motion,
+  }) {
+    if (hrSamples.isEmpty) {
+      _log('warn', 'Empty HR samples');
+      return;
+    }
+    
+    // Convert each HR sample to RR interval
+    final rrIntervals = hrSamples.map((hr) => hr > 0 ? (60000.0 / hr) : 0.0).toList();
+    
+    // Use the mean HR for the HR value
+    final meanHr = hrSamples.reduce((a, b) => a + b) / hrSamples.length;
+    
+    // Push with converted RR intervals
+    push(
+      hr: meanHr,
+      rrIntervalsMs: rrIntervals,
+      timestamp: timestamp,
+      motion: motion,
+    );
+  }
+
   /// Consume ready results (throttled by step interval)
   ///
   /// Returns results synchronously (no await required), matching API
