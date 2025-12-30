@@ -17,7 +17,9 @@
 - **🧠 On-Device Processing**: All computations happen locally for privacy
 - **📊 Unified Output**: Consistent emotion labels with confidence scores
 - **🔒 Privacy-First**: No raw biometric data leaves your device
-- **⚡ High Performance**: < 5ms inference latency on mid-range devices
+- **⚡ High Performance**: < 1s inference latency 
+- **🧬 14 HRV Features**: Comprehensive feature extraction (time-domain, frequency-domain, non-linear)
+- **🤖 ONNX Models**: ExtraTrees classifiers optimized for on-device inference
 
 ## 📦 Installation
 
@@ -25,7 +27,7 @@ Add `synheart_emotion` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  synheart_emotion: ^0.2.2
+  synheart_emotion: ^0.2.3
 ```
 
 Then run:
@@ -42,12 +44,9 @@ flutter pub get
 import 'package:synheart_emotion/synheart_emotion.dart';
 
 void main() async {
-  // Initialize the emotion engine
+  // Initialize the emotion engine (default: 120s window, 60s step)
   final engine = EmotionEngine.fromPretrained(
-    const EmotionConfig(
-      window: Duration(seconds: 60),
-      step: Duration(seconds: 5),
-    ),
+    const EmotionConfig(),
   );
 
   // Push biometric data
@@ -57,8 +56,8 @@ void main() async {
     timestamp: DateTime.now().toUtc(),
   );
 
-  // Get emotion results (synchronous - no await needed)
-  final results = engine.consumeReady();
+  // Get emotion results (async for ONNX models)
+  final results = await engine.consumeReadyAsync();
   for (final result in results) {
     print('Emotion: ${result.emotion} (${(result.confidence * 100).toStringAsFixed(1)}%)');
   }
@@ -91,7 +90,7 @@ First, add both to your `pubspec.yaml`:
 ```yaml
 dependencies:
   synheart_wear: ^0.1.0    # For wearable data
-  synheart_emotion: ^0.2.2  # For emotion inference
+  synheart_emotion: ^0.2.3  # For emotion inference
 ```
 
 Then integrate in your app:
@@ -103,7 +102,7 @@ import 'package:synheart_emotion/synheart_emotion.dart';
 // Initialize both SDKs
 final wear = SynheartWear();
 final emotionEngine = EmotionEngine.fromPretrained(
-  const EmotionConfig(window: Duration(seconds: 60)),
+  const EmotionConfig(), // Default: 120s window, 60s step
 );
 
 await wear.initialize();
@@ -116,8 +115,8 @@ wear.streamHR(interval: Duration(seconds: 1)).listen((metrics) {
     timestamp: DateTime.now().toUtc(),
   );
   
-  // Get emotion results (synchronous - no await needed)
-  final emotions = emotionEngine.consumeReady();
+  // Get emotion results (async for ONNX models)
+  final emotions = await emotionEngine.consumeReadyAsync();
   for (final emotion in emotions) {
     // Use emotion data in your app
     updateUI(emotion);
@@ -129,11 +128,52 @@ See `examples/lib/integration_example.dart` for complete integration examples.
 
 ## 📊 Supported Emotions
 
-The library currently supports three emotion categories:
+The library currently supports two emotion categories:
 
-- **😊 Amused**: Positive, engaged emotional state
-- **😌 Calm**: Relaxed, peaceful emotional state  
-- **😰 Stressed**: Anxious, tense emotional state
+- **😌 Baseline**: Relaxed, peaceful emotional state  
+- **😰 Stress**: Anxious, tense emotional state
+
+## 🧠 Model Architecture
+
+The library uses **ExtraTrees (Extremely Randomized Trees)** classifiers trained on the WESAD dataset:
+
+- **14 HRV Features**: Time-domain, frequency-domain, and non-linear metrics
+- **Binary Classification**: Baseline vs Stress detection
+- **ONNX Format**: Optimized for on-device inference
+- **Accuracy**: 78.4% on WESAD validation set (LOSO CV)
+- **F1 Score**: 72.6% on WESAD validation set (LOSO CV)
+
+### Available Models
+
+- `ExtraTrees_120_60`: 120-second window, 60-second step (default)
+- `ExtraTrees_60_5`: 60-second window, 5-second step
+- `ExtraTrees_120_5`: 120-second window, 5-second step
+
+### Feature Extraction
+
+The library extracts 14 HRV features in the following order:
+
+**Time-domain features:**
+- RMSSD (Root Mean Square of Successive Differences)
+- Mean_RR (Mean RR interval)
+- HRV_SDNN (Standard Deviation of NN intervals)
+- pNN50 (Percentage of successive differences > 50ms)
+
+**Frequency-domain features:**
+- HRV_HF (High Frequency power)
+- HRV_LF (Low Frequency power)
+- HRV_HF_nu (Normalized HF)
+- HRV_LF_nu (Normalized LF)
+- HRV_LFHF (LF/HF ratio)
+- HRV_TP (Total Power)
+
+**Non-linear features:**
+- HRV_SD1SD2 (Poincaré plot ratio)
+- HRV_Sampen (Sample Entropy)
+- HRV_DFA_alpha1 (Detrended Fluctuation Analysis)
+
+**Heart Rate:**
+- HR (Heart Rate in BPM)
 
 ## 🔧 API Reference
 
@@ -146,7 +186,7 @@ class EmotionEngine {
   // Create engine with pretrained model
   factory EmotionEngine.fromPretrained(
     EmotionConfig config, {
-    LinearSvmModel? model,
+    dynamic model,
     void Function(String level, String message, {Map<String, Object?>? context})? onLog,
   });
 
@@ -158,8 +198,8 @@ class EmotionEngine {
     Map<String, double>? motion,
   });
 
-  // Get ready emotion results
-  Future<List<EmotionResult>> consumeReady();
+  // Get ready emotion results (async - for ONNX models)
+  Future<List<EmotionResult>> consumeReadyAsync();
 
   // Get buffer statistics
   Map<String, dynamic> getBufferStats();
@@ -175,9 +215,9 @@ Configuration for the emotion engine:
 
 ```dart
 class EmotionConfig {
-  final String modelId;                 // Model identifier
-  final Duration window;                // Rolling window size (default: 60s)
-  final Duration step;                  // Emission cadence (default: 5s)
+  final String modelId;                 // Model identifier (default: extratrees_w120s60_binary_v1_0)
+  final Duration window;                // Rolling window size (default: 120s)
+  final Duration step;                  // Emission cadence (default: 60s)
   final int minRrCount;                 // Min RR intervals needed (default: 30)
   final bool returnAllProbas;           // Return all probabilities (default: true)
   final double? hrBaseline;             // Optional HR personalization
@@ -206,7 +246,8 @@ class EmotionResult {
 - **No Data Retention**: Raw biometric data is not retained after processing
 - **No Network Calls**: No data is sent to external servers
 - **Privacy-First Design**: No built-in storage - you control what gets persisted
-- **Real Trained Models**: Uses WESAD-trained models with 78% accuracy
+- **Real Trained Models**: Uses WESAD-trained ExtraTrees models with 78.4% accuracy (72.6% F1 score)
+- **14-Feature Extraction**: Comprehensive HRV analysis including time-domain, frequency-domain, and non-linear metrics
 
 ## 📱 Example App
 
@@ -245,21 +286,25 @@ Tests cover:
 - Model inference performance
 - Edge case handling
 - Memory usage patterns
+- Integration with synheart-core EmotionHead
+- HSI schema compatibility validation
+- Time-series data processing with ring buffer
+- Push/consumeReadyAsync API pattern
 
 ## 📊 Performance
 
 **Target Performance (mid-range phone):**
-- **Latency**: < 5ms per inference
-- **Model Size**: < 100 KB
-- **CPU Usage**: < 2% during active streaming
-- **Memory**: < 3 MB (engine + buffers)
-- **Accuracy**: 78% on WESAD dataset (3-class emotion recognition)
+- **Latency**: < 10ms per inference (ONNX models)
+- **Model Size**: ~200-300 KB per model
+- **CPU Usage**: < 3% during active streaming
+- **Memory**: < 5 MB (engine + buffers + ONNX runtime)
+- **Accuracy**: 78.4% on WESAD dataset (binary classification: Baseline vs Stress)
+- **F1 Score**: 72.6% on WESAD dataset (LOSO CV)
 
 **Benchmarks:**
-- HR mean calculation: < 1ms
-- SDNN/RMSSD calculation: < 2ms
-- Model inference: < 1ms
-- Full pipeline: < 5ms
+- 14-feature extraction: < 3ms
+- ONNX model inference: < 5ms
+- Full pipeline: < 10ms
 
 ## 🏗️ Architecture
 
@@ -270,18 +315,63 @@ Biometric Data (HR, RR)
 ┌─────────────────────┐
 │   EmotionEngine     │
 │  [RingBuffer]       │
-│  [FeatureExtractor] │
-│  [Model Inference]  │
+│  [14-Feature        │
+│   Extractor]        │
+│  [ONNX Inference]   │
 └─────────────────────┘
          │
          ▼
    EmotionResult
+   (Baseline/Stress)
          │
          ▼
     Your App
+
+```
+
+### Feature Extraction Pipeline
+
+1. **Time-domain features**: RMSSD, Mean_RR, SDNN, pNN50
+2. **Frequency-domain features**: HF, LF, HF_nu, LF_nu, LFHF, TP (via FFT)
+3. **Non-linear features**: SD1SD2, Sample Entropy, DFA alpha1
+4. **Heart Rate**: Calculated from Mean_RR
 ```
 
 ## 🔗 Integration
+
+### With synheart-core (HSI)
+
+**synheart_emotion** is designed to integrate seamlessly with [synheart-core](https://github.com/synheart-ai/synheart-core) as part of the Human State Interface (HSI) system:
+
+```dart
+import 'package:synheart_core/synheart_core.dart';
+import 'package:synheart_emotion/synheart_emotion.dart';
+
+// Initialize synheart-core (includes emotion capability)
+await Synheart.initialize(
+  userId: 'user_123',
+  config: SynheartConfig(
+    enableWear: true,
+    enableBehavior: true,
+  ),
+);
+
+// Enable emotion interpretation layer (powered by synheart-emotion)
+await Synheart.enableEmotion();
+
+// Get emotion updates through HSI
+Synheart.onEmotionUpdate.listen((emotion) {
+  print('Baseline: ${emotion.baseline}');
+  print('Stress: ${emotion.stress}');
+});
+```
+
+**HSI Schema Compatibility:**
+- EmotionResult from synheart-emotion maps to HSI EmotionState
+- Output validated against HSI_SPECIFICATION.md
+- Comprehensive integration tests ensure compatibility
+
+See the [synheart-core documentation](https://github.com/synheart-ai/synheart-core) for more details on HSI integration.
 
 ### With synheart-wear
 
