@@ -3,7 +3,7 @@
 **On-device emotion inference from biosignals (HR/RR) for Flutter applications**
 
 [![pub package](https://img.shields.io/pub/v/synheart_emotion.svg)](https://pub.dev/packages/synheart_emotion)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-Apache2.0-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/synheart-ai/synheart-emotion-flutter/actions/workflows/ci.yml/badge.svg)](https://github.com/synheart-ai/synheart-emotion-flutter/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/synheart-ai/synheart-emotion-flutter/branch/main/graph/badge.svg)](https://codecov.io/gh/synheart-ai/synheart-emotion-flutter)
 [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20Android-lightgrey.svg)](https://flutter.dev)
