@@ -1,6 +1,6 @@
 name: synheart_emotion
-description: On-device emotion inference from biosignals (HR/RR) for Flutter. Detects emotions (Amused, Calm, Stressed) using WESAD-trained ML models.
-version: 0.2.3
+description: On-device emotion inference from biosignals (HR/RR) for Dart/Flutter. Detects Baseline vs Stress using WESAD-trained ExtraTrees ONNX models.
+version: 0.3.0
 homepage: https://github.com/synheart-ai/synheart-emotion
 repository: https://github.com/synheart-ai/synheart-emotion
 issue_tracker: https://github.com/synheart-ai/synheart-emotion/issues

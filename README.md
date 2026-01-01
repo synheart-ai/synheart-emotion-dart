@@ -3,7 +3,7 @@
 **On-device emotion inference from biosignals (HR/RR) for Flutter applications**
 
 [![pub package](https://img.shields.io/pub/v/synheart_emotion.svg)](https://pub.dev/packages/synheart_emotion)
-[![License: MIT](https://img.shields.io/badge/License-Apache2.0-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache2.0-yellow.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![CI](https://github.com/synheart-ai/synheart-emotion-flutter/actions/workflows/ci.yml/badge.svg)](https://github.com/synheart-ai/synheart-emotion-flutter/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/synheart-ai/synheart-emotion-flutter/branch/main/graph/badge.svg)](https://codecov.io/gh/synheart-ai/synheart-emotion-flutter)
 [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20Android-lightgrey.svg)](https://flutter.dev)
@@ -17,7 +17,7 @@
 - **🧠 On-Device Processing**: All computations happen locally for privacy
 - **📊 Unified Output**: Consistent emotion labels with confidence scores
 - **🔒 Privacy-First**: No raw biometric data leaves your device
-- **⚡ High Performance**: < 1s inference latency 
+- **⚡ High Performance**: < 10ms inference latency (ONNX models)
 - **🧬 14 HRV Features**: Comprehensive feature extraction (time-domain, frequency-domain, non-linear)
 - **🤖 ONNX Models**: ExtraTrees classifiers optimized for on-device inference
 
@@ -27,7 +27,7 @@ Add `synheart_emotion` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  synheart_emotion: ^0.2.3
+  synheart_emotion: ^0.3.0
 ```
 
 Then run:
@@ -90,7 +90,7 @@ First, add both to your `pubspec.yaml`:
 ```yaml
 dependencies:
   synheart_wear: ^0.1.0    # For wearable data
-  synheart_emotion: ^0.2.3  # For emotion inference
+  synheart_emotion: ^0.3.0  # For emotion inference
 ```
 
 Then integrate in your app:

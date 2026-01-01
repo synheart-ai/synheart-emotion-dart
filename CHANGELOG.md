@@ -5,7 +5,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.0] - 2025-12-30
+## [0.3.0] - 2026-01-01
 
 ### Added
 - **New ExtraTrees ONNX models** with comprehensive 14-feature HRV extraction:
@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Corresponding metadata JSON files for each model with full feature specifications
 - **Complete 14-feature HRV extraction** (`HrvFeaturesComplete` class) with:
   - **Time-Domain Features (4)**: RMSSD, Mean_RR, HRV_SDNN, pNN50
-  - **Frequency-Domain Features (7)**: HRV_HF, HRV_LF, HRV_VLF, HRV_HF_nu, HRV_LF_nu, HRV_LFHF, HRV_TP
+  - **Frequency-Domain Features (6)**: HRV_HF, HRV_LF, HRV_HF_nu, HRV_LF_nu, HRV_LFHF, HRV_TP
   - **Non-Linear Features (3)**: HRV_SD1SD2 (Poincaré plot), HRV_Sampen (Sample Entropy), HRV_DFA_alpha1 (Detrended Fluctuation Analysis)
   - **Heart Rate**: HR (BPM) - can use actual HR values or derive from RR intervals
 - **Automatic 14-feature model detection** via `_uses14Features` getter in `EmotionEngine`:
