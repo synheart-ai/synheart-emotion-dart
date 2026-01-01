@@ -153,48 +153,38 @@ class OnnxEmotionModel {
         }
 
         // Identify outputs by name (order can vary)
-        String? labelKey;
         String? probKey;
 
-        for (var key in outputKeys) {
+        for (final key in outputKeys) {
           final lowerKey = key.toLowerCase();
-          if (lowerKey.contains('label')) {
-            labelKey = key;
-          } else if (lowerKey.contains('prob')) {
+          if (lowerKey.contains('prob')) {
             probKey = key;
           }
         }
 
         // Fallback: if not found by name, use position (first = label, second = probabilities)
         // This matches Python: outputs[0] is label, outputs[1] is probabilities
-        labelKey ??= outputKeys[0];
-        probKey ??= outputKeys[1];
+        final resolvedProbKey = probKey ?? outputKeys[1];
 
-        if (probKey == null) {
-          throw EmotionError.badInput('Could not find probabilities output');
-        }
-
-        final probValue = outputs[probKey]!;
-
-        // Extract probabilities - handle shape [1, num_classes] like [[0.3, 0.7]]
-        var probData = await probValue.asList();
-
-        // Handle shape [1, num_classes] - take first element to get [num_classes]
-        // If probData is [[0.3, 0.7]], extract [0] to get [0.3, 0.7]
-        if (probData is List && probData.isNotEmpty && probData[0] is List) {
-          // It's nested: [[0.3, 0.7]] -> take [0] to get [0.3, 0.7]
-          probData = probData[0];
-        }
-
-        // Now probData should be a 1D list like [0.3, 0.7]
-        if (probData is! List) {
+        final probValue = outputs[resolvedProbKey];
+        if (probValue == null) {
           throw EmotionError.badInput(
-            'Expected list for probabilities, got ${probData.runtimeType}',
+            'Could not find probabilities output "$resolvedProbKey"',
           );
         }
 
-        // Extract probabilities
-        final probList = probData as List;
+        // Extract probabilities - handle shape [1, num_classes] like [[0.3, 0.7]]
+        final List<dynamic> probData = await probValue.asList();
+        List<dynamic> probList = probData;
+
+        // Handle shape [1, num_classes] - take first element to get [num_classes]
+        // If probData is [[0.3, 0.7]], extract [0] to get [0.3, 0.7]
+        if (probList.isNotEmpty && probList.first is List) {
+          // It's nested: [[0.3, 0.7]] -> take [0] to get [0.3, 0.7]
+          probList = probList.first as List;
+        }
+
+        // Now probData should be a 1D list like [0.3, 0.7]
         if (probList.length != classNames.length) {
           throw EmotionError.badInput(
             'Invalid probability shape: length ${probList.length}, expected ${classNames.length}',

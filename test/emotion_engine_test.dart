@@ -51,8 +51,8 @@ void main() {
       final rrIntervals = List.generate(100, (i) => 800.0 + (i % 50));
 
       final features = FeatureExtractor.extract14Features(
-        hrValues: hrValues,
-        rrIntervalsMs: rrIntervals,
+        rrIntervals,
+        meanHr: FeatureExtractor.extractHrMean(hrValues),
       );
 
       // Verify all 14 features are present
@@ -144,11 +144,17 @@ void main() {
       );
 
       // Add enough data points
+      // Note: EmotionEngine requires a (nearly) full window of data before it
+      // will emit (see _extractWindowFeatures). For a 10s window with 2s
+      // tolerance, the oldest timestamp must be ~8s old.
+      final baseTime = DateTime.now().toUtc().subtract(
+        const Duration(seconds: 9),
+      );
       for (int i = 0; i < 3; i++) {
         engineWithModel.push(
           hr: 70.0 + i,
           rrIntervalsMs: [800.0, 820.0, 810.0, 830.0, 815.0],
-          timestamp: DateTime.now().toUtc().subtract(Duration(seconds: i)),
+          timestamp: baseTime.add(Duration(seconds: i)),
         );
       }
 
@@ -215,10 +221,7 @@ void main() {
     test('default values are correct', () {
       const config = EmotionConfig();
 
-      expect(
-        config.modelId,
-        equals('extratrees_chest_ecg_w120s60_binary_v1_0'),
-      );
+      expect(config.modelId, equals('extratrees_w120s60_binary_v1_0'));
       expect(config.window, equals(Duration(seconds: 120)));
       expect(config.step, equals(Duration(seconds: 60)));
       expect(config.minRrCount, equals(30));

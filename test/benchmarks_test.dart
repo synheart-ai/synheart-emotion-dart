@@ -82,8 +82,8 @@ void main() {
       final stopwatch = Stopwatch()..start();
       for (int i = 0; i < 1000; i++) {
         FeatureExtractor.extract14Features(
-          hrValues: hrValues,
-          rrIntervalsMs: rrIntervals,
+          rrIntervals,
+          meanHr: FeatureExtractor.extractHrMean(hrValues),
         );
       }
       stopwatch.stop();

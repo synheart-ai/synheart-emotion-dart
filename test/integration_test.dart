@@ -223,7 +223,12 @@ void main() {
 
     test('consumeReady throttles by step interval', () {
       // Add data
-      final baseTime = DateTime.now();
+      // Note: EmotionEngine requires a (nearly) full window of data before it
+      // will emit (see _extractWindowFeatures). For a 10s window with 2s
+      // tolerance, the oldest timestamp must be ~8s old.
+      final baseTime = DateTime.now().toUtc().subtract(
+        const Duration(seconds: 9),
+      );
       for (int i = 0; i < 3; i++) {
         engine.push(
           hr: 70.0,
@@ -253,11 +258,15 @@ void main() {
       );
 
       // Push data
+      // Ensure the buffer spans (almost) the full window so inference runs.
+      final baseTime = DateTime.now().toUtc().subtract(
+        const Duration(seconds: 9),
+      );
       for (int i = 0; i < 3; i++) {
         engineWithBaseline.push(
           hr: 75.0, // Will be normalized to 75 - 65 = 10
           rrIntervalsMs: List.generate(10, (j) => 800.0),
-          timestamp: DateTime.now().add(Duration(seconds: i)),
+          timestamp: baseTime.add(Duration(seconds: i)),
         );
       }
 
