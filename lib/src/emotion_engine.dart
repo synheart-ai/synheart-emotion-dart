@@ -51,8 +51,17 @@ class EmotionEngine {
     return EmotionEngine._(config: config, model: inferenceModel, onLog: onLog);
   }
 
-  /// Expected number of core HRV features (hr_mean, sdnn, rmssd).
-  static const int expectedFeatureCount = 3;
+  /// Expected number of core HRV features.
+  /// Note: For 14-feature models (ExtraTrees), this is 14.
+  static const int expectedFeatureCount = 14;
+  
+  /// Check if model uses 14-feature extraction
+  bool get _uses14Features =>
+      config.modelId.contains('extratrees') ||
+      config.modelId.contains('ExtraTrees') ||
+      (model != null &&
+          model.runtimeType.toString().contains('Onnx') &&
+          (model as dynamic).inputNames.length == 14);
 
   /// Configuration for this emotion engine instance.
   final EmotionConfig config;
@@ -153,11 +162,8 @@ class EmotionEngine {
       // which are all synchronous.
       final Map<String, double> probabilities;
       if (model.runtimeType.toString().contains('Onnx')) {
-        _log(
-          'error',
-          'ONNX async models not supported in consumeReady(). '
-              'Use Linear SVM model.',
-        );
+        // ONNX models require async - return empty for now
+        // Callers should use consumeReadyAsync() for ONNX models
         return results;
       } else {
         // Linear SVM model is synchronous
@@ -187,9 +193,118 @@ class EmotionEngine {
     return results;
   }
 
+  /// Consume ready results asynchronously (for ONNX models)
+  ///
+  /// This method supports async ONNX model inference while maintaining
+  /// the same throttling and windowing logic as consumeReady().
+  Future<List<EmotionResult>> consumeReadyAsync() async {
+    final results = <EmotionResult>[];
+
+    if (model == null) {
+      _log('warn', 'Model is null, cannot perform inference');
+      return results;
+    }
+
+    try {
+      // Check if enough time has passed since last emission
+      final now = DateTime.now().toUtc();
+      if (_lastEmission != null) {
+        final timeSinceLastEmission = now.difference(_lastEmission!);
+        if (timeSinceLastEmission.compareTo(config.step) < 0) {
+          _log(
+            'debug',
+            'Step interval throttling: ${timeSinceLastEmission.inSeconds}s since last emission, need ${config.step.inSeconds}s',
+          );
+          return results; // Not ready yet
+        }
+      }
+
+      // Check if we have enough data
+      if (_buffer.length < 2) {
+        _log('warn', 'Not enough data points in buffer: ${_buffer.length} < 2');
+        return results; // Not enough data
+      }
+
+      // Extract features from current window
+      Map<String, double>? features;
+      try {
+        features = _extractWindowFeatures();
+        if (features == null) {
+          _log('error', 'Feature extraction failed - returned null');
+          return results; // Feature extraction failed
+        }
+
+        _log(
+          'debug',
+          'Features extracted successfully: ${features.keys.join(", ")} (${features.length} features)',
+        );
+      } catch (e, stackTrace) {
+        _log('error', 'Feature extraction threw exception: $e');
+        _log('error', 'Stack trace: $stackTrace');
+        return results; // Feature extraction failed
+      }
+
+      // Run inference - support both sync and async models
+      final Map<String, double> probabilities;
+      if (model.runtimeType.toString().contains('Onnx')) {
+        // ONNX model - use async prediction
+        _log('debug', 'Running ONNX inference...');
+        try {
+          probabilities = await (model as dynamic).predictAsync(features);
+          _log('debug', 'ONNX inference completed successfully');
+        } catch (e, stackTrace) {
+          _log('error', 'ONNX inference failed: $e');
+          _log('error', 'Stack trace: $stackTrace');
+          rethrow;
+        }
+      } else {
+        // Linear SVM model is synchronous
+        _log('debug', 'Running Linear SVM inference...');
+        probabilities = model.predict(features);
+        _log('debug', 'Linear SVM inference completed successfully');
+      }
+
+      // Create result
+      final result = EmotionResult.fromInference(
+        timestamp: now,
+        probabilities: probabilities,
+        features: features,
+        model: model.getMetadata(),
+      );
+
+      results.add(result);
+      _lastEmission = now;
+
+      _log(
+        'info',
+        'Emitted result: ${result.emotion} '
+            '(${(result.confidence * 100).toStringAsFixed(1)}%)',
+      );
+    } catch (e, stackTrace) {
+      _log('error', 'Error during inference: $e');
+      _log('error', 'Stack trace: $stackTrace');
+    }
+
+    return results;
+  }
+
   /// Extract features from current window
   Map<String, double>? _extractWindowFeatures() {
     if (_buffer.isEmpty) {
+      return null;
+    }
+
+    // Check if the oldest data point in buffer is at least window duration old
+    // This ensures we have a full window of data from (now - window) to now
+    // Allow 2 second tolerance for timing precision and data push intervals
+    final now = DateTime.now().toUtc();
+    final oldestDataAge = now.difference(_buffer.first.timestamp);
+    final requiredAge = config.window - const Duration(seconds: 2); // 2 second tolerance
+    if (oldestDataAge < requiredAge) {
+      _log(
+        'warn',
+        'Buffer window insufficient: oldest data is ${oldestDataAge.inSeconds}s old, need ${config.window.inSeconds}s window. Need ${(requiredAge.inSeconds - oldestDataAge.inSeconds).toStringAsFixed(1)}s more.',
+      );
       return null;
     }
 
@@ -221,16 +336,21 @@ class EmotionEngine {
       return null;
     }
 
-    // Extract features
+    // Extract features - use 14-feature extraction if model requires it
     final features = FeatureExtractor.extractFeatures(
       hrValues: hrValues,
       rrIntervalsMs: allRrIntervals,
       motion: motionAggregate,
+      use14Features: _uses14Features,
     );
 
     // Apply personalization if configured
     if (config.hrBaseline != null) {
-      features['hr_mean'] = features['hr_mean']! - config.hrBaseline!;
+      // For 14-feature mode, HR is stored as 'HR', for legacy mode it's 'hr_mean'
+      final hrKey = _uses14Features ? 'HR' : 'hr_mean';
+      if (features.containsKey(hrKey)) {
+        features[hrKey] = features[hrKey]! - config.hrBaseline!;
+      }
     }
 
     return features;

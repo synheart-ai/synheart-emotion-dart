@@ -5,37 +5,36 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2025-12-30
 
 ### Added
-- Comprehensive integration tests matching synheart-core EmotionHead usage pattern
-  - Tests for EmotionEngine initialization with synheart-core config (10s window, 1s step)
-  - Tests for push/consumeReady synchronous API pattern
-  - Tests for handling synthetic RR intervals from derived HRV features
-  - Tests for time-series data processing with proper window management
-  - Tests for graceful handling of invalid/missing features
-  - Tests for buffer management and clearing
-  - Tests for consumeReady throttling by step interval
-  - Tests for personalization with HR baseline
-  - Tests for accurate buffer statistics
+- **New ExtraTrees ONNX models** with comprehensive 14-feature HRV extraction:
+  - `ExtraTrees_120_5_nozipmap.onnx` - 120s window, 5s step, binary classification
+  - `ExtraTrees_120_60_nozipmap.onnx` - 120s window, 60s step, binary classification
+  - `ExtraTrees_60_5_nozipmap.onnx` - 60s window, 5s step, binary classification
+  - Corresponding metadata JSON files for each model with full feature specifications
+- **Complete 14-feature HRV extraction** (`HrvFeaturesComplete` class) with:
+  - **Time-Domain Features (4)**: RMSSD, Mean_RR, HRV_SDNN, pNN50
+  - **Frequency-Domain Features (7)**: HRV_HF, HRV_LF, HRV_VLF, HRV_HF_nu, HRV_LF_nu, HRV_LFHF, HRV_TP
+  - **Non-Linear Features (3)**: HRV_SD1SD2 (Poincaré plot), HRV_Sampen (Sample Entropy), HRV_DFA_alpha1 (Detrended Fluctuation Analysis)
+  - **Heart Rate**: HR (BPM) - can use actual HR values or derive from RR intervals
+- **Automatic 14-feature model detection** via `_uses14Features` getter in `EmotionEngine`:
+  - Detects models based on model ID containing 'extratrees' or 'ExtraTrees'
+  - Detects ONNX models with exactly 14 input names
+- **Enhanced feature extraction** with `use14Features` flag support in `extractFeatures()` method
 
-- HSI schema compatibility tests
-  - Tests verifying EmotionResult probabilities match HSI EmotionState schema
-  - Tests for correct mapping of 'Stressed', 'Calm', 'Amused' categories
-  - Tests for toJson output HSI compatibility
-  - Tests validating derived fields (activation, valence) calculations
-  - Tests ensuring probabilities are valid (0.0-1.0 range)
-
-### Improved
-- Test coverage increased from 14 to 36 tests (157% increase)
-- Validated compatibility with synheart-core-dart v0.0.1 EmotionHead implementation
-- Confirmed performance metrics meet <5ms inference latency targets
-- Verified ring buffer correctly manages 10s window with data trimming
-
-## [0.2.3] - 2025-12-26
+### Changed
+- Updated `expectedFeatureCount` from 5 to 14 for ExtraTrees models
+- Updated default `modelId` in `EmotionConfig` to `'extratrees_w120s60_binary_v1_0'`
+- Updated example app to use new ExtraTrees models with 14-feature extraction demonstration
+- Updated test files to match new 14-feature extraction
 
 ### Fixed
-- Updated README dependency snippets and API reference to match the current package version and synchronous `consumeReady()` API
+- Improved error messages for feature count mismatches
+- Better error handling for feature extraction in ONNX models
+
+### Removed
+- Removed old model metadata files (`extratrees_wrist_all_v1_0.meta.json`, `wesad_emotion_v1_0.json`)
 
 ## [0.2.2] - 2025-12-07
 
