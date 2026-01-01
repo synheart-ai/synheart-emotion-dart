@@ -54,7 +54,7 @@ class EmotionEngine {
   /// Expected number of core HRV features.
   /// Note: For 14-feature models (ExtraTrees), this is 14.
   static const int expectedFeatureCount = 14;
-  
+
   /// Check if model uses 14-feature extraction
   bool get _uses14Features =>
       config.modelId.contains('extratrees') ||
@@ -299,7 +299,8 @@ class EmotionEngine {
     // Allow 2 second tolerance for timing precision and data push intervals
     final now = DateTime.now().toUtc();
     final oldestDataAge = now.difference(_buffer.first.timestamp);
-    final requiredAge = config.window - const Duration(seconds: 2); // 2 second tolerance
+    final requiredAge =
+        config.window - const Duration(seconds: 2); // 2 second tolerance
     if (oldestDataAge < requiredAge) {
       _log(
         'warn',

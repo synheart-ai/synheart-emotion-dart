@@ -215,7 +215,10 @@ void main() {
     test('default values are correct', () {
       const config = EmotionConfig();
 
-      expect(config.modelId, equals('extratrees_chest_ecg_w120s60_binary_v1_0'));
+      expect(
+        config.modelId,
+        equals('extratrees_chest_ecg_w120s60_binary_v1_0'),
+      );
       expect(config.window, equals(Duration(seconds: 120)));
       expect(config.step, equals(Duration(seconds: 60)));
       expect(config.minRrCount, equals(30));

@@ -120,7 +120,7 @@ class FeatureExtractor {
   }
 
   /// Extract all features for emotion inference
-  /// 
+  ///
   /// Supports both legacy 5-feature mode and new 14-feature mode.
   /// Set [use14Features] to true to use the complete 14-feature extraction
   /// required for ExtraTrees_120_60 and similar models.
@@ -138,52 +138,52 @@ class FeatureExtractor {
         // Use mean of provided HR values
         meanHr = hrValues.reduce((a, b) => a + b) / hrValues.length;
       }
-      
+
       final featureList = HrvFeaturesComplete.extractAllFeatures(
         rrIntervalsMs,
         meanHr: meanHr,
       );
-      
+
       // Map to feature names expected by model (must match metadata input_names exactly)
-      // Order: ['RMSSD', 'Mean_RR', 'HRV_SDNN', 'pNN50', 
-      // 'HRV_HF', 'HRV_LF', 'HRV_HF_nu', 'HRV_LF_nu', 'HRV_LFHF', 'HRV_TP', 
+      // Order: ['RMSSD', 'Mean_RR', 'HRV_SDNN', 'pNN50',
+      // 'HRV_HF', 'HRV_LF', 'HRV_HF_nu', 'HRV_LF_nu', 'HRV_LFHF', 'HRV_TP',
       // 'HRV_SD1SD2', 'HRV_Sampen', 'HRV_DFA_alpha1', 'HR']
       // These names must exactly match the input_names in the ONNX model metadata
       final featureNames = [
-        'RMSSD',        // 0: Root Mean Square of Successive Differences
-        'Mean_RR',      // 1: Mean RR interval
-        'HRV_SDNN',     // 2: Standard Deviation of NN intervals
-        'pNN50',        // 3: Percentage of successive differences > 50ms
-        'HRV_HF',       // 4: High Frequency power
-        'HRV_LF',       // 5: Low Frequency power
-        'HRV_HF_nu',    // 6: Normalized HF
-        'HRV_LF_nu',    // 7: Normalized LF
-        'HRV_LFHF',     // 8: LF/HF ratio
-        'HRV_TP',       // 9: Total Power
-        'HRV_SD1SD2',   // 10: Poincaré plot ratio
-        'HRV_Sampen',   // 11: Sample Entropy
+        'RMSSD', // 0: Root Mean Square of Successive Differences
+        'Mean_RR', // 1: Mean RR interval
+        'HRV_SDNN', // 2: Standard Deviation of NN intervals
+        'pNN50', // 3: Percentage of successive differences > 50ms
+        'HRV_HF', // 4: High Frequency power
+        'HRV_LF', // 5: Low Frequency power
+        'HRV_HF_nu', // 6: Normalized HF
+        'HRV_LF_nu', // 7: Normalized LF
+        'HRV_LFHF', // 8: LF/HF ratio
+        'HRV_TP', // 9: Total Power
+        'HRV_SD1SD2', // 10: Poincaré plot ratio
+        'HRV_Sampen', // 11: Sample Entropy
         'HRV_DFA_alpha1', // 12: Detrended Fluctuation Analysis
-        'HR'            // 13: Heart Rate in BPM
+        'HR', // 13: Heart Rate in BPM
       ];
-      
+
       // Verify we have exactly 14 features
       if (featureList.length != 14) {
         throw ArgumentError(
           'Expected 14 features, got ${featureList.length}. '
-          'Feature extraction may have failed.'
+          'Feature extraction may have failed.',
         );
       }
-      
+
       final features = <String, double>{};
       for (var i = 0; i < featureList.length && i < featureNames.length; i++) {
         features[featureNames[i]] = featureList[i];
       }
-      
+
       // Add motion features if provided
       if (motion != null) {
         features.addAll(motion);
       }
-      
+
       return features;
     } else {
       // Legacy 5-feature extraction
@@ -203,14 +203,14 @@ class FeatureExtractor {
       return features;
     }
   }
-  
+
   /// Extract 14 features as a list in the exact order expected by ExtraTrees
   /// models.
   ///
   /// Returns features in order: [RMSSD, Mean_RR, HRV_SDNN, pNN50, HRV_HF,
   /// HRV_LF, HRV_HF_nu, HRV_LF_nu, HRV_LFHF, HRV_TP, HRV_SD1SD2, HRV_Sampen,
   /// HRV_DFA_alpha1, HR]
-  /// 
+  ///
   /// [meanHr] is optional - if provided, will be used as the HR feature instead
   /// of computing it from mean RR interval.
   static List<double> extract14Features(

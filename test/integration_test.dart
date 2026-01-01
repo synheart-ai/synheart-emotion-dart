@@ -128,8 +128,10 @@ void main() {
         final result = results.first;
 
         // Map to HSI EmotionState (matching synheart-core pattern)
-        final stress =
-            (result.probabilities['Stressed'] ?? 0.0).clamp(0.0, 1.0);
+        final stress = (result.probabilities['Stressed'] ?? 0.0).clamp(
+          0.0,
+          1.0,
+        );
         final calm = (result.probabilities['Calm'] ?? 0.0).clamp(0.0, 1.0);
         final amused = (result.probabilities['Amused'] ?? 0.0).clamp(0.0, 1.0);
 
@@ -288,11 +290,7 @@ void main() {
 
   group('EmotionResult HSI Compatibility', () {
     test('probabilities match HSI EmotionState schema', () {
-      final probabilities = {
-        'Stressed': 0.3,
-        'Calm': 0.6,
-        'Amused': 0.1,
-      };
+      final probabilities = {'Stressed': 0.3, 'Calm': 0.6, 'Amused': 0.1};
 
       final result = EmotionResult.fromInference(
         timestamp: DateTime.now(),
@@ -314,11 +312,7 @@ void main() {
     test('toJson output is HSI-compatible', () {
       final result = EmotionResult.fromInference(
         timestamp: DateTime(2025, 1, 1, 12, 0, 0),
-        probabilities: {
-          'Stressed': 0.3,
-          'Calm': 0.6,
-          'Amused': 0.1,
-        },
+        probabilities: {'Stressed': 0.3, 'Calm': 0.6, 'Amused': 0.1},
         features: {'hr_mean': 70.0, 'sdnn': 40.0, 'rmssd': 45.0},
         model: {'id': 'extratrees_wrist_all_v1_0', 'version': '1.0'},
       );
@@ -359,11 +353,7 @@ class _MockLinearSvmModel {
   }
 
   Map<String, dynamic> getMetadata() {
-    return {
-      'id': 'mock_svm_linear',
-      'version': '1.0',
-      'type': 'LinearSVM',
-    };
+    return {'id': 'mock_svm_linear', 'version': '1.0', 'type': 'LinearSVM'};
   }
 
   @override

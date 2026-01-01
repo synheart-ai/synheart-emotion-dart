@@ -87,7 +87,7 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
 
   void _startSimulation() {
     if (_isRunning || !_isInitialized || _engine == null) return;
-    
+
     setState(() {
       _isRunning = true;
       _dataCollectionSeconds = 0;
@@ -116,7 +116,7 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
   void _stopSimulation() {
     _dataTimer?.cancel();
     _inferenceTimer?.cancel();
-    
+
     setState(() {
       _isRunning = false;
       _statusMessage = 'Stopped. Ready to detect emotions.';
@@ -125,11 +125,11 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
 
   void _simulateDataPoint() {
     final random = Random();
-    
+
     // Simulate HR from watch (input is HR only)
     final baseHr = 70 + (random.nextDouble() - 0.5) * 20; // ~70 BPM ± 10
     final hr = baseHr.clamp(50.0, 120.0);
-    
+
     // Convert HR to RR intervals using pushFromHrSamples
     // Generate multiple HR samples to get more RR intervals
     // This simulates having multiple HR readings from the watch
@@ -139,7 +139,7 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
       final hrSample = hr + (random.nextDouble() - 0.5) * 5.0;
       hrSamples.add(hrSample.clamp(50.0, 120.0));
     }
-    
+
     // Use pushFromHrSamples to convert HR to RR automatically
     _engine!.pushFromHrSamples(
       hrSamples: hrSamples,
@@ -149,14 +149,15 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
 
   void _runInference() async {
     if (_engine == null) return;
-    
+
     try {
       final results = await _engine!.consumeReadyAsync();
-      
+
       if (results.isNotEmpty) {
         setState(() {
           _latestResult = results.first;
-          _statusMessage = 'Emotion detected: ${results.first.emotion} (${(results.first.confidence * 100).toStringAsFixed(1)}%)';
+          _statusMessage =
+              'Emotion detected: ${results.first.emotion} (${(results.first.confidence * 100).toStringAsFixed(1)}%)';
         });
       }
     } catch (e) {
@@ -218,7 +219,11 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
                 padding: const EdgeInsets.all(12.0),
                 child: Row(
                   children: [
-                    Icon(Icons.model_training, color: Colors.blue[700], size: 20),
+                    Icon(
+                      Icons.model_training,
+                      color: Colors.blue[700],
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
@@ -226,16 +231,16 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
                         children: [
                           Text(
                             'Model:',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.blue[900],
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Colors.blue[900],
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           Text(
                             _modelName,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.blue[900],
-                            ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: Colors.blue[900]),
                           ),
                         ],
                       ),
@@ -245,7 +250,7 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Status message
             Card(
               child: Padding(
@@ -485,8 +490,9 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: (_isRunning || !_isInitialized || _engine == null) 
-                        ? null 
+                    onPressed:
+                        (_isRunning || !_isInitialized || _engine == null)
+                        ? null
                         : _startSimulation,
                     icon: Icon(_isRunning ? Icons.stop : Icons.play_arrow),
                     label: Text(_isRunning ? 'Stop' : 'Start Detection'),

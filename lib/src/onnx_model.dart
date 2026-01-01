@@ -28,7 +28,7 @@ class OnnxEmotionModel {
   final Map<String, dynamic> _metadata;
 
   /// Load ONNX model from assets
-  /// 
+  ///
   /// Automatically detects metadata file based on model path pattern:
   /// - ExtraTrees_60_5.onnx -> ExtraTrees_metadata_60_5.json
   /// - ExtraTrees_60_5_nozipmap.onnx -> ExtraTrees_metadata_60_5_nozipmap.json
@@ -145,7 +145,7 @@ class OnnxEmotionModel {
 
       try {
         final outputKeys = outputs.keys.toList();
-        
+
         if (outputKeys.length < 2) {
           throw EmotionError.badInput(
             'Expected 2 outputs (label, probabilities), got ${outputKeys.length}',
@@ -175,7 +175,7 @@ class OnnxEmotionModel {
         }
 
         final probValue = outputs[probKey]!;
-        
+
         // Extract probabilities - handle shape [1, num_classes] like [[0.3, 0.7]]
         var probData = await probValue.asList();
 
@@ -207,7 +207,9 @@ class OnnxEmotionModel {
           if (val is num) {
             probabilities.add(val.toDouble());
           } else {
-            throw EmotionError.badInput('Invalid probability value at index $i: $val');
+            throw EmotionError.badInput(
+              'Invalid probability value at index $i: $val',
+            );
           }
         }
 
@@ -257,10 +259,10 @@ class OnnxEmotionModel {
 
       // Handle different naming conventions
       double? value;
-      
+
       // Direct match first
       value = featureMap[key];
-      
+
       // Fallback to common aliases
       if (value == null) {
         if (key == 'sdnn' || key == 'hrv_sdnn') {
@@ -307,15 +309,15 @@ class OnnxEmotionModel {
     if (inputNames.length != 14) {
       throw EmotionError.badInput(
         'Model configuration error: model expects ${inputNames.length} features, '
-        'but this implementation requires exactly 14 features.'
+        'but this implementation requires exactly 14 features.',
       );
     }
-    
+
     if (featureVector.length != 14) {
       throw EmotionError.badInput(
         'Feature count mismatch: expected exactly 14 features, '
         'extracted ${featureVector.length}. Model requires exactly 14 features: '
-        '${inputNames.join(", ")}'
+        '${inputNames.join(", ")}',
       );
     }
 

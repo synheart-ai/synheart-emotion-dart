@@ -89,9 +89,7 @@ void main() {
       stopwatch.stop();
 
       final avgTimeMs = stopwatch.elapsedMicroseconds / 1000 / 1000;
-      print(
-        '14-feature extraction: ${avgTimeMs.toStringAsFixed(3)}ms average',
-      );
+      print('14-feature extraction: ${avgTimeMs.toStringAsFixed(3)}ms average');
 
       // Should be fast (< 10ms per calculation for 14 features)
       expect(avgTimeMs, lessThan(10.0));
