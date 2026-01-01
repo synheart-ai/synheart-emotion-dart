@@ -37,7 +37,8 @@ class OnnxEmotionModel {
     String? metaAssetPath,
   }) async {
     // Auto-detect metadata path if not provided
-    if (metaAssetPath == null) {
+    var resolvedMetaAssetPath = metaAssetPath;
+    if (resolvedMetaAssetPath == null) {
       final fileName = modelAssetPath.split('/').last;
       if (fileName.contains('_')) {
         // Pattern: ExtraTrees_60_5_nozipmap.onnx -> ExtraTrees_metadata_60_5_nozipmap.json
@@ -46,18 +47,27 @@ class OnnxEmotionModel {
           // Reconstruct metadata filename
           final metaFileName =
               '${parts[0]}_metadata_${parts[1]}_${parts[2]}_${parts.sublist(3).join('_')}.json';
-          metaAssetPath = modelAssetPath.replaceAll(fileName, metaFileName);
+          resolvedMetaAssetPath = modelAssetPath.replaceAll(
+            fileName,
+            metaFileName,
+          );
         } else {
           // Fallback: try simple replacement
-          metaAssetPath = modelAssetPath.replaceAll('.onnx', '_metadata.json');
+          resolvedMetaAssetPath = modelAssetPath.replaceAll(
+            '.onnx',
+            '_metadata.json',
+          );
         }
       } else {
-        metaAssetPath = modelAssetPath.replaceAll('.onnx', '_metadata.json');
+        resolvedMetaAssetPath = modelAssetPath.replaceAll(
+          '.onnx',
+          '_metadata.json',
+        );
       }
     }
     try {
       // Load metadata
-      final metaString = await rootBundle.loadString(metaAssetPath);
+      final metaString = await rootBundle.loadString(resolvedMetaAssetPath);
       final metadata = json.decode(metaString) as Map<String, dynamic>;
 
       final modelId = metadata['model_id'] as String;

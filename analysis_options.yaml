@@ -181,15 +181,21 @@ analyzer:
     # Info
     todo: info
     
-    # Relax some style rules to info level (don't fail CI)
+    # Relax noisy style rules (they're useful in IDEs, but shouldn't fail CI).
+    #
+    # Note: `flutter analyze` exits non-zero if it reports any issues at all,
+    # even when they're "info". Setting these to "ignore" keeps CI green while
+    # still allowing teams to enable them locally if desired.
     avoid_print: info
-    avoid_redundant_argument_values: info
-    omit_local_variable_types: info
-    prefer_int_literals: info
-    prefer_expression_function_bodies: info
-    always_put_control_body_on_new_line: info
     sort_constructors_first: info
-    lines_longer_than_80_chars: info
+
+    avoid_redundant_argument_values: ignore
+    omit_local_variable_types: ignore
+    prefer_int_literals: ignore
+    prefer_expression_function_bodies: ignore
+    always_put_control_body_on_new_line: ignore
+    prefer_final_in_for_each: ignore
+    lines_longer_than_80_chars: ignore
 
   exclude:
     - "**/*.g.dart"
