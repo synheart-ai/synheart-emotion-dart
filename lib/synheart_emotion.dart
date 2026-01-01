@@ -6,9 +6,10 @@
 /// ## Features
 ///
 /// * **Privacy-first**: All processing happens on-device
-/// * **Real-time**: <5ms inference latency
-/// * **Three emotion states**: Amused, Calm, Stressed
-/// * **Sliding window**: 60s window with 5s step (configurable)
+/// * **Real-time**: <10ms inference latency
+/// * **Two emotion states**: Baseline, Stress
+/// * **Sliding window**: 120s window with 60s step (default, configurable)
+/// * **14 HRV features**: Comprehensive feature extraction
 /// * **Stream API**: Reactive programming support
 ///
 /// ## Quick Start
@@ -27,8 +28,8 @@
 ///   timestamp: DateTime.now(),
 /// );
 ///
-/// // Get inference result when ready
-/// final results = engine.consumeReady();
+/// // Get inference result when ready (async for ONNX models)
+/// final results = await engine.consumeReadyAsync();
 /// for (final result in results) {
 ///   print('Emotion: ${result.emotion}');
 ///   print('Confidence: ${result.confidence}');
@@ -58,4 +59,5 @@ export 'src/emotion_error.dart';
 export 'src/emotion_result.dart';
 export 'src/emotion_stream.dart';
 export 'src/features.dart';
+export 'src/hrv_features_complete.dart';
 export 'src/onnx_model.dart';

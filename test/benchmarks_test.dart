@@ -74,6 +74,28 @@ void main() {
       // Should be fast (< 5ms per calculation)
       expect(avgTimeMs, lessThan(5.0));
     });
+
+    test('14-feature extraction performance', () {
+      final hrValues = List.generate(100, (i) => 70.0 + (i % 20));
+      final rrIntervals = List.generate(100, (i) => 800.0 + (i % 50));
+
+      final stopwatch = Stopwatch()..start();
+      for (int i = 0; i < 1000; i++) {
+        FeatureExtractor.extract14Features(
+          hrValues: hrValues,
+          rrIntervalsMs: rrIntervals,
+        );
+      }
+      stopwatch.stop();
+
+      final avgTimeMs = stopwatch.elapsedMicroseconds / 1000 / 1000;
+      print(
+        '14-feature extraction: ${avgTimeMs.toStringAsFixed(3)}ms average',
+      );
+
+      // Should be fast (< 10ms per calculation for 14 features)
+      expect(avgTimeMs, lessThan(10.0));
+    });
   });
 
   // Note: Model Inference Benchmarks removed in v0.2.0
@@ -87,8 +109,8 @@ void main() {
     setUp(() {
       engine = EmotionEngine.fromPretrained(
         const EmotionConfig(
-          window: Duration(seconds: 60),
-          step: Duration(seconds: 5),
+          window: Duration(seconds: 120),
+          step: Duration(seconds: 60),
           minRrCount: 30,
         ),
       );
@@ -114,7 +136,7 @@ void main() {
       expect(avgTimeMs, lessThan(1.0));
     });
 
-    test('Inference cycle performance', () {
+    test('Inference cycle performance', () async {
       // Fill buffer with enough data
       for (int i = 0; i < 10; i++) {
         engine.push(
@@ -126,18 +148,18 @@ void main() {
 
       final stopwatch = Stopwatch()..start();
       for (int i = 0; i < 100; i++) {
-        engine.consumeReady();
+        await engine.consumeReadyAsync();
       }
       stopwatch.stop();
 
       final avgTimeMs = stopwatch.elapsedMicroseconds / 1000 / 100;
       print('Inference cycle: ${avgTimeMs.toStringAsFixed(3)}ms average');
 
-      // Should be fast (< 5ms per inference cycle)
-      expect(avgTimeMs, lessThan(5.0));
+      // Should be fast (< 10ms per inference cycle for async)
+      expect(avgTimeMs, lessThan(10.0));
     });
 
-    test('Memory usage during continuous operation', () {
+    test('Memory usage during continuous operation', () async {
       // Simulate 5 minutes of data (600 pushes at 500ms intervals)
       for (int i = 0; i < 600; i++) {
         engine.push(
@@ -150,7 +172,7 @@ void main() {
 
         // Run inference every 10 pushes
         if (i % 10 == 0) {
-          engine.consumeReady();
+          await engine.consumeReadyAsync();
         }
       }
 

@@ -46,6 +46,22 @@ void main() {
       expect(features.containsKey('steps'), isTrue);
     });
 
+    test('extract14Features returns all 14 HRV features', () {
+      final hrValues = [70.0, 72.0, 68.0];
+      final rrIntervals = List.generate(100, (i) => 800.0 + (i % 50));
+
+      final features = FeatureExtractor.extract14Features(
+        hrValues: hrValues,
+        rrIntervalsMs: rrIntervals,
+      );
+
+      // Verify all 14 features are present
+      expect(features.length, equals(14));
+      expect(features[0], greaterThan(0)); // RMSSD
+      expect(features[1], greaterThan(0)); // Mean_RR
+      expect(features[13], greaterThan(0)); // HR
+    });
+
     test('normalizeFeatures applies z-score normalization', () {
       final features = {'hr_mean': 80.0, 'sdnn': 50.0};
       final mu = {'hr_mean': 70.0, 'sdnn': 40.0};
@@ -104,7 +120,18 @@ void main() {
       expect(results, isEmpty);
     });
 
-    test('consumeReady returns results when enough data', () {
+    test('consumeReadyAsync returns empty list when not enough data', () async {
+      engine.push(
+        hr: 70.0,
+        rrIntervalsMs: [800.0], // Only 1 RR interval, need 5
+        timestamp: DateTime.now().toUtc(),
+      );
+
+      final results = await engine.consumeReadyAsync();
+      expect(results, isEmpty);
+    });
+
+    test('consumeReadyAsync returns results when enough data', () async {
       // Create a mock model for testing
       final mockModel = _MockEmotionModel();
       final engineWithModel = EmotionEngine.fromPretrained(
@@ -125,11 +152,11 @@ void main() {
         );
       }
 
-      final results = engineWithModel.consumeReady();
+      final results = await engineWithModel.consumeReadyAsync();
       expect(results, isNotEmpty);
 
       final result = results.first;
-      expect(result.emotion, isIn(['Amused', 'Calm', 'Stressed']));
+      expect(result.emotion, isIn(['Baseline', 'Stress']));
       expect(result.confidence, greaterThan(0.0));
       expect(result.confidence, lessThanOrEqualTo(1.0));
     });
@@ -151,7 +178,7 @@ void main() {
 
   group('EmotionResult', () {
     test('fromInference creates result with correct top emotion', () {
-      final probabilities = {'Calm': 0.6, 'Stressed': 0.3, 'Amused': 0.1};
+      final probabilities = {'Baseline': 0.6, 'Stress': 0.4};
       final features = {'hr_mean': 70.0, 'sdnn': 40.0};
       final model = {'id': 'test', 'version': '1.0'};
 
@@ -162,7 +189,7 @@ void main() {
         model: model,
       );
 
-      expect(result.emotion, equals('Calm'));
+      expect(result.emotion, equals('Baseline'));
       expect(result.confidence, equals(0.6));
       expect(result.probabilities, equals(probabilities));
     });
@@ -170,7 +197,7 @@ void main() {
     test('toJson and fromJson round trip correctly', () {
       final original = EmotionResult.fromInference(
         timestamp: DateTime(2023, 1, 1, 12, 0, 0),
-        probabilities: {'Calm': 0.8, 'Stressed': 0.2},
+        probabilities: {'Baseline': 0.8, 'Stress': 0.2},
         features: {'hr_mean': 70.0},
         model: {'id': 'test'},
       );
@@ -188,9 +215,9 @@ void main() {
     test('default values are correct', () {
       const config = EmotionConfig();
 
-      expect(config.modelId, equals('svm_linear_wrist_sdnn_v1_0'));
-      expect(config.window, equals(Duration(seconds: 60)));
-      expect(config.step, equals(Duration(seconds: 5)));
+      expect(config.modelId, equals('extratrees_chest_ecg_w120s60_binary_v1_0'));
+      expect(config.window, equals(Duration(seconds: 120)));
+      expect(config.step, equals(Duration(seconds: 60)));
       expect(config.minRrCount, equals(30));
       expect(config.returnAllProbas, isTrue);
     });
@@ -227,8 +254,8 @@ void main() {
 /// Mock model for testing EmotionEngine without requiring actual ONNX model
 class _MockEmotionModel {
   Map<String, double> predict(Map<String, double> features) {
-    // Return mock probabilities
-    return {'Calm': 0.6, 'Stressed': 0.3, 'Amused': 0.1};
+    // Return mock probabilities for binary classification (Baseline/Stress)
+    return {'Baseline': 0.6, 'Stress': 0.4};
   }
 
   Future<Map<String, double>> predictAsync(Map<String, double> features) async {
@@ -236,8 +263,16 @@ class _MockEmotionModel {
   }
 
   Map<String, dynamic> getMetadata() {
-    return {'id': 'mock_model', 'version': '1.0'};
+    return {
+      'id': 'mock_model',
+      'version': '1.0',
+      'model_id': 'extratrees_chest_ecg_w120s60_binary_v1_0',
+    };
   }
+
+  // Mock ONNX model properties
+  List<String> get inputNames => List.generate(14, (i) => 'feature_$i');
+  List<String> get classNames => ['Baseline', 'Stress'];
 
   @override
   String toString() => 'MockEmotionModel';

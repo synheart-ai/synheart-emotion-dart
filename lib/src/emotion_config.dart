@@ -4,22 +4,23 @@ import 'package:meta/meta.dart';
 @immutable
 class EmotionConfig {
   const EmotionConfig({
-    this.modelId = 'svm_linear_wrist_sdnn_v1_0',
-    this.window = const Duration(seconds: 60),
-    this.step = const Duration(seconds: 5),
+    this.modelId = 'extratrees_w120s60_binary_v1_0',
+    this.window = const Duration(seconds: 120),
+    this.step = const Duration(seconds: 60),
     this.minRrCount = 30,
     this.returnAllProbas = true,
     this.hrBaseline,
     this.priors,
   });
 
-  /// Model identifier (default: svm_linear_wrist_sdnn_v1_0)
+  /// Model identifier (default: extratrees_w120s60_binary_v1_0)
+  /// Supports: ExtraTrees_60_5, ExtraTrees_120_5, ExtraTrees_120_60
   final String modelId;
 
-  /// Rolling window size for feature calculation (default: 60s)
+  /// Rolling window size for feature calculation (default: 120s)
   final Duration window;
 
-  /// Emission cadence for results (default: 5s)
+  /// Emission cadence for results (default: 60s)
   final Duration step;
 
   /// Minimum RR intervals required for inference (default: 30)

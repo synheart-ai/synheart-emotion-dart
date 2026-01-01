@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:synheart_emotion/synheart_emotion.dart';
 
@@ -29,10 +31,16 @@ class EmotionDetectionPage extends StatefulWidget {
 }
 
 class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
-  late EmotionEngine _engine;
+  EmotionEngine? _engine;
   EmotionResult? _latestResult;
-  bool _isLoading = false;
-  String _statusMessage = 'Ready to detect emotions';
+  bool _isRunning = false;
+  bool _isInitializing = false;
+  bool _isInitialized = false;
+  String _statusMessage = 'Initializing...';
+  String _modelName = 'Loading...';
+  Timer? _dataTimer;
+  Timer? _inferenceTimer;
+  int _dataCollectionSeconds = 0;
 
   @override
   void initState() {
@@ -40,69 +48,140 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
     _initializeEngine();
   }
 
-  void _initializeEngine() {
-    _engine = EmotionEngine.fromPretrained(
-      const EmotionConfig(
-        window: Duration(seconds: 60),
-        step: Duration(seconds: 5),
-        minRrCount: 30,
-      ),
+  Future<void> _initializeEngine() async {
+    setState(() {
+      _isInitializing = true;
+      _statusMessage = 'Loading 60_5 model...';
+    });
+
+    try {
+      // Load the 60_5 ONNX model - ExtraTrees_60_5_nozipmap.onnx
+      final onnxModel = await OnnxEmotionModel.loadFromAsset(
+        modelAssetPath: 'assets/ml/ExtraTrees_60_5_nozipmap.onnx',
+      );
+
+      // Create engine with the loaded model
+      // Use the modelId from the loaded model (read from metadata)
+      _engine = EmotionEngine.fromPretrained(
+        EmotionConfig(
+          modelId: onnxModel.modelId, // Use actual modelId from loaded model
+          window: const Duration(seconds: 60),
+          step: const Duration(seconds: 5),
+          minRrCount: 30,
+        ),
+        model: onnxModel,
+      );
+
+      setState(() {
+        _isInitialized = true;
+        _statusMessage = 'Ready to detect emotions';
+        _modelName = 'ExtraTrees 60s/5s (${onnxModel.modelId})';
+      });
+    } catch (e) {
+      setState(() {
+        _isInitializing = false;
+        _statusMessage = 'Error loading model: $e';
+      });
+    }
+  }
+
+  void _startSimulation() {
+    if (_isRunning || !_isInitialized || _engine == null) return;
+    
+    setState(() {
+      _isRunning = true;
+      _dataCollectionSeconds = 0;
+      _statusMessage = 'Collecting data... 0s';
+    });
+
+    // Simulate data every 500ms (like the working example)
+    _dataTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+      _simulateDataPoint();
+      setState(() {
+        // Increment by 0.5 seconds each time (500ms = 0.5s)
+        _dataCollectionSeconds++;
+        final seconds = _dataCollectionSeconds / 2.0; // Convert to seconds
+        if (_latestResult == null) {
+          _statusMessage = 'Collecting data... ${seconds.toStringAsFixed(1)}s';
+        }
+      });
+    });
+
+    // Run inference based on step size (5 seconds)
+    _inferenceTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      _runInference();
+    });
+  }
+
+  void _stopSimulation() {
+    _dataTimer?.cancel();
+    _inferenceTimer?.cancel();
+    
+    setState(() {
+      _isRunning = false;
+      _statusMessage = 'Stopped. Ready to detect emotions.';
+    });
+  }
+
+  void _simulateDataPoint() {
+    final random = Random();
+    
+    // Simulate HR from watch (input is HR only)
+    final baseHr = 70 + (random.nextDouble() - 0.5) * 20; // ~70 BPM ± 10
+    final hr = baseHr.clamp(50.0, 120.0);
+    
+    // Convert HR to RR intervals using pushFromHrSamples
+    // Generate multiple HR samples to get more RR intervals
+    // This simulates having multiple HR readings from the watch
+    final hrSamples = <double>[];
+    for (int i = 0; i < 10; i++) {
+      // Add small variation to HR samples
+      final hrSample = hr + (random.nextDouble() - 0.5) * 5.0;
+      hrSamples.add(hrSample.clamp(50.0, 120.0));
+    }
+    
+    // Use pushFromHrSamples to convert HR to RR automatically
+    _engine!.pushFromHrSamples(
+      hrSamples: hrSamples,
+      timestamp: DateTime.now().toUtc(),
     );
   }
 
-  Future<void> _simulateDataAndDetect() async {
-    setState(() {
-      _isLoading = true;
-      _statusMessage = 'Collecting biometric data...';
-    });
-
-    // Simulate pushing biometric data
-    // In a real app, this would come from a wearable device or health sensor
-    final now = DateTime.now().toUtc();
-    for (int i = 0; i < 20; i++) {
-      _engine.push(
-        hr: 70.0 + (i * 0.5), // Simulated heart rate
-        rrIntervalsMs: List.generate(
-          10, // More RR intervals per data point
-          (j) => 800.0 + (j * 10.0) + (i * 2.0),
-        ), // Simulated RR intervals
-        timestamp: now.subtract(Duration(seconds: 20 - i)),
-      );
-    }
-
-    // Wait a bit for processing
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    // Consume ready results
-    final results = await _engine.consumeReady();
-
-    setState(() {
-      _isLoading = false;
+  void _runInference() async {
+    if (_engine == null) return;
+    
+    try {
+      final results = await _engine!.consumeReadyAsync();
+      
       if (results.isNotEmpty) {
-        _latestResult = results.first;
-        _statusMessage = 'Emotion detected successfully';
-      } else {
-        _statusMessage = 'Not enough data yet. Need more RR intervals.';
+        setState(() {
+          _latestResult = results.first;
+          _statusMessage = 'Emotion detected: ${results.first.emotion} (${(results.first.confidence * 100).toStringAsFixed(1)}%)';
+        });
       }
-    });
+    } catch (e) {
+      setState(() {
+        _statusMessage = 'Inference error: $e';
+      });
+    }
   }
 
   void _clearData() {
-    _engine.clear();
+    _stopSimulation();
+    _engine?.clear();
     setState(() {
       _latestResult = null;
+      _dataCollectionSeconds = 0;
       _statusMessage = 'Data cleared. Ready to detect emotions.';
     });
   }
 
   Color _getEmotionColor(String emotion) {
     switch (emotion.toLowerCase()) {
-      case 'calm':
+      case 'baseline':
         return Colors.green;
-      case 'stressed':
+      case 'stress':
         return Colors.red;
-      case 'amused':
-        return Colors.orange;
       default:
         return Colors.blue;
     }
@@ -110,12 +189,10 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
 
   IconData _getEmotionIcon(String emotion) {
     switch (emotion.toLowerCase()) {
-      case 'calm':
+      case 'baseline':
         return Icons.spa;
-      case 'stressed':
+      case 'stress':
         return Icons.warning;
-      case 'amused':
-        return Icons.mood;
       default:
         return Icons.favorite;
     }
@@ -134,13 +211,48 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Model info card
+            Card(
+              color: Colors.blue[50],
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.model_training, color: Colors.blue[700], size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Model:',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.blue[900],
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            _modelName,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Colors.blue[900],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            
             // Status message
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    if (_isLoading)
+                    if (_isRunning)
                       const Padding(
                         padding: EdgeInsets.only(right: 12.0),
                         child: SizedBox(
@@ -373,27 +485,27 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: _isLoading ? null : _simulateDataAndDetect,
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('Detect Emotion'),
+                    onPressed: (_isRunning || !_isInitialized || _engine == null) 
+                        ? null 
+                        : _startSimulation,
+                    icon: Icon(_isRunning ? Icons.stop : Icons.play_arrow),
+                    label: Text(_isRunning ? 'Stop' : 'Start Detection'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                   ),
                 ),
-                if (_latestResult != null) ...[
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    onPressed: _clearData,
-                    icon: const Icon(Icons.clear),
-                    label: const Text('Clear'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.grey[300],
-                      foregroundColor: Colors.black87,
-                    ),
+                const SizedBox(width: 12),
+                ElevatedButton.icon(
+                  onPressed: _clearData,
+                  icon: const Icon(Icons.clear),
+                  label: const Text('Clear'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.grey[300],
+                    foregroundColor: Colors.black87,
                   ),
-                ],
+                ),
               ],
             ),
           ],
@@ -404,7 +516,8 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
 
   @override
   void dispose() {
-    _engine.clear();
+    _stopSimulation();
+    _engine?.clear();
     super.dispose();
   }
 }

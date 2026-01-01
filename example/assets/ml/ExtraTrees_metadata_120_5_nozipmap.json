@@ -1,0 +1,112 @@
+{
+  "model_id": "extratrees_chest_ecg_w120s5_binary_v1_0",
+  "format": "onnx",
+  "task": "binary_classification",
+  "window_config": {
+    "window_size_sec": 120,
+    "window_step_sec": 5
+  },
+  "schema": {
+    "input_names": [
+      "RMSSD",
+      "Mean_RR",
+      "HRV_SDNN",
+      "pNN50",
+      "HRV_HF",
+      "HRV_LF",
+      "HRV_HF_nu",
+      "HRV_LF_nu",
+      "HRV_LFHF",
+      "HRV_TP",
+      "HRV_SD1SD2",
+      "HRV_Sampen",
+      "HRV_DFA_alpha1",
+      "HR"
+    ],
+    "input_units": [
+      "ms",
+      "ms",
+      "ms",
+      "ms",
+      "ms\u00b2",
+      "ms\u00b2",
+      "ms\u00b2",
+      "ms\u00b2",
+      "ms\u00b2",
+      "ms\u00b2",
+      "ratio",
+      "entropy",
+      "alpha",
+      "bpm"
+    ],
+    "order_fixed": true,
+    "normalization": {
+      "type": "standard_scaler",
+      "mean": [
+        53.800009188597244,
+        793.592130870769,
+        74.43408724481642,
+        23.0058319186363,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        78.63404064438085
+      ],
+      "std": [
+        35.00311051413542,
+        147.22208698958627,
+        29.776269287239028,
+        18.344290533002095,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        17.036544581354427
+      ],
+      "note": "Normalization included in the ONNX model pipeline"
+    }
+  },
+  "output": {
+    "type": "probability",
+    "range": [
+      0.0,
+      1.0
+    ],
+    "class_names": [
+      "Baseline",
+      "Stress"
+    ],
+    "class_indices": [
+      0,
+      1
+    ],
+    "positive_class": "Stress"
+  },
+  "quantization": {
+    "enabled": false,
+    "dtype": "float32"
+  },
+  "performance": {
+    "loso_cv_accuracy": 0.7792884658962157,
+    "loso_cv_f1_score": 0.7267115600448933
+  },
+  "training_data_tag": "wesad_chest_ecg_binary",
+  "created_utc": "2025-12-26T16:23:12.928074Z",
+  "license": "Apache-2.0",
+  "notes": "Binary classification (Baseline vs Stress). ONNX model with built-in StandardScaler normalization. Trained on WESAD chest ECG with 120s windows and 5s steps.",
+  "checksum": {
+    "algo": "sha256",
+    "value": "e4dc1b102449f6bdb983f5f7849a06804347fa3fdc90c40991c21805f7a73998"
+  }
+}
