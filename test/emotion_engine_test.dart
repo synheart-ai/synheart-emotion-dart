@@ -203,9 +203,9 @@ void main() {
     test('toJson and fromJson round trip correctly', () {
       final original = EmotionResult.fromInference(
         timestamp: DateTime(2023, 1, 1, 12, 0, 0),
-        probabilities: {'Baseline': 0.8, 'Stress': 0.2},
-        features: {'hr_mean': 70.0},
-        model: {'id': 'test'},
+        probabilities: const {'Baseline': 0.8, 'Stress': 0.2},
+        features: const {'hr_mean': 70.0},
+        model: const {'id': 'test'},
       );
 
       final json = original.toJson();
@@ -222,8 +222,8 @@ void main() {
       const config = EmotionConfig();
 
       expect(config.modelId, equals('extratrees_w120s60_binary_v1_0'));
-      expect(config.window, equals(Duration(seconds: 120)));
-      expect(config.step, equals(Duration(seconds: 60)));
+      expect(config.window, equals(const Duration(seconds: 120)));
+      expect(config.step, equals(const Duration(seconds: 60)));
       expect(config.minRrCount, equals(30));
       expect(config.returnAllProbas, isTrue);
     });
@@ -231,11 +231,11 @@ void main() {
     test('copyWith creates modified copy', () {
       const original = EmotionConfig();
       final modified = original.copyWith(
-        window: Duration(seconds: 30),
+        window: const Duration(seconds: 30),
         minRrCount: 20,
       );
 
-      expect(modified.window, equals(Duration(seconds: 30)));
+      expect(modified.window, equals(const Duration(seconds: 30)));
       expect(modified.minRrCount, equals(20));
       expect(modified.step, equals(original.step)); // Unchanged
     });

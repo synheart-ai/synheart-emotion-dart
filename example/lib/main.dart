@@ -34,7 +34,6 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
   EmotionEngine? _engine;
   EmotionResult? _latestResult;
   bool _isRunning = false;
-  bool _isInitializing = false;
   bool _isInitialized = false;
   String _statusMessage = 'Initializing...';
   String _modelName = 'Loading...';
@@ -50,7 +49,6 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
 
   Future<void> _initializeEngine() async {
     setState(() {
-      _isInitializing = true;
       _statusMessage = 'Loading 60_5 model...';
     });
 
@@ -79,7 +77,6 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
       });
     } catch (e) {
       setState(() {
-        _isInitializing = false;
         _statusMessage = 'Error loading model: $e';
       });
     }
@@ -130,9 +127,9 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
     final baseHr = 70 + (random.nextDouble() - 0.5) * 20; // ~70 BPM ± 10
     final hr = baseHr.clamp(50.0, 120.0);
 
-    // Convert HR to RR intervals using pushFromHrSamples
-    // Generate multiple HR samples to get more RR intervals
-    // This simulates having multiple HR readings from the watch
+    // Convert HR to RR intervals.
+    // Generate multiple HR samples to get more RR intervals (simulates multiple
+    // watch readings).
     final hrSamples = <double>[];
     for (int i = 0; i < 10; i++) {
       // Add small variation to HR samples
@@ -140,9 +137,14 @@ class _EmotionDetectionPageState extends State<EmotionDetectionPage> {
       hrSamples.add(hrSample.clamp(50.0, 120.0));
     }
 
-    // Use pushFromHrSamples to convert HR to RR automatically
-    _engine!.pushFromHrSamples(
-      hrSamples: hrSamples,
+    final rrIntervalsMs = hrSamples
+        .map((bpm) => 60000.0 / bpm)
+        .toList(growable: false);
+    final meanHr = hrSamples.reduce((a, b) => a + b) / hrSamples.length;
+
+    _engine!.push(
+      hr: meanHr,
+      rrIntervalsMs: rrIntervalsMs,
       timestamp: DateTime.now().toUtc(),
     );
   }

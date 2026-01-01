@@ -1,6 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:synheart_emotion/synheart_emotion.dart';
 
+// These are benchmark-style tests and intentionally print timing information.
+// ignore_for_file: avoid_print
+
 void main() {
   group('FeatureExtractor Benchmarks', () {
     test('HR mean calculation performance', () {

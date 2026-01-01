@@ -42,8 +42,8 @@ void main() {
     test('push accepts derived HR and synthetic RR intervals', () {
       // synheart-core EmotionHead derives features from HSV embedding
       // and synthesizes RR intervals from mean_rr with variance
-      final hrMean = 72.0;
-      final meanRr = 833.0; // 60000 / 72
+      const hrMean = 72.0;
+      const meanRr = 833.0; // 60000 / 72
 
       // Synthetic RR intervals with variance (matching EmotionHead pattern)
       final syntheticRR = List.generate(10, (i) {
@@ -157,7 +157,7 @@ void main() {
       // EmotionEngine should maintain 10s window and emit every 1s (step)
 
       final baseTime = DateTime.now();
-      final pushCount = 15; // 15 data points over time
+      const pushCount = 15; // 15 data points over time
 
       for (int i = 0; i < pushCount; i++) {
         engine.push(
@@ -299,13 +299,13 @@ void main() {
 
   group('EmotionResult HSI Compatibility', () {
     test('probabilities match HSI EmotionState schema', () {
-      final probabilities = {'Stressed': 0.3, 'Calm': 0.6, 'Amused': 0.1};
+      const probabilities = {'Stressed': 0.3, 'Calm': 0.6, 'Amused': 0.1};
 
       final result = EmotionResult.fromInference(
         timestamp: DateTime.now(),
         probabilities: probabilities,
-        features: {'hr_mean': 70.0, 'sdnn': 40.0, 'rmssd': 45.0},
-        model: {'id': 'test', 'version': '1.0'},
+        features: const {'hr_mean': 70.0, 'sdnn': 40.0, 'rmssd': 45.0},
+        model: const {'id': 'test', 'version': '1.0'},
       );
 
       // Verify all required emotion categories are present
@@ -321,9 +321,9 @@ void main() {
     test('toJson output is HSI-compatible', () {
       final result = EmotionResult.fromInference(
         timestamp: DateTime(2025, 1, 1, 12, 0, 0),
-        probabilities: {'Stressed': 0.3, 'Calm': 0.6, 'Amused': 0.1},
-        features: {'hr_mean': 70.0, 'sdnn': 40.0, 'rmssd': 45.0},
-        model: {'id': 'extratrees_wrist_all_v1_0', 'version': '1.0'},
+        probabilities: const {'Stressed': 0.3, 'Calm': 0.6, 'Amused': 0.1},
+        features: const {'hr_mean': 70.0, 'sdnn': 40.0, 'rmssd': 45.0},
+        model: const {'id': 'extratrees_wrist_all_v1_0', 'version': '1.0'},
       );
 
       final json = result.toJson();
